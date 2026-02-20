@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>強力ファイル暗号化ツール (AES-256-GCM)</title>
+<style>
+body { font-family: sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; background:#f4f7f6;}
+textarea,input { width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;}
+button { padding:10px 20px; margin-right:10px; border:none; border-radius:4px; color:white; cursor:pointer;}
+.enc { background:#2ecc71;}
+.dec { background:#3498db;}
+.section { background:white; padding:15px; margin-top:20px; border-radius:6px;}
+</style>
+</head>
+<body>
+
+<h2>🔐 AES-256-GCM 暗号化ツール</h2>
+<p><small>すべてブラウザ内で処理されます（Web Crypto API使用）</small></p>
+
+<div class="section">
+<h3>🔑 共通鍵</h3>
+<input type="password" id="password" placeholder="強力なパスワードを入力">
+</div>
+
+<div class="section">
+<h3>📝 テキスト暗号化</h3>
+<textarea id="textInput" placeholder="テキストを入力"></textarea>
+<button class="enc" onclick="encryptText()">暗号化</button>
+<button class="dec" onclick="decryptText()">復号</button>
+<textarea id="textOutput" placeholder="結果表示"></textarea>
+</div>
+
+<div class="section">
+<h3>📁 ファイル暗号化</h3>
+<input type="file" id="fileInput">
+<button class="enc" onclick="encryptFile()">ファイル暗号化</button>
+<button class="dec" onclick="decryptFile()">ファイル復号 (.encrypted)</button>
+</div>
+
+<script>
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+async function deriveKey(password, salt) {
+    const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+    );
+
+    return crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: salt,
+            iterations: 250000,
+            hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+    );
+}
+
+function concatBuffers(...buffers) {
+    let total = buffers.reduce((sum, b) => sum + b.byteLength, 0);
+    let tmp = new Uint8Array(total);
+    let offset = 0;
+    buffers.forEach(b => {
+        tmp.set(new Uint8Array(b), offset);
+        offset += b.byteLength;
+    });
+    return tmp.buffer;
+}
+
+async function encryptData(data, password) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(password, salt);
+
+    const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        data
+    );
+
+    return concatBuffers(salt, iv, encrypted);
+}
+
+async function decryptData(data, password) {
+    const salt = data.slice(0,16);
+    const iv = data.slice(16,28);
+    const encrypted = data.slice(28);
+    const key = await deriveKey(password, salt);
+
+    return crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encrypted
+    );
+}
+
+async function encryptText(){
+    const pw = document.getElementById("password").value;
+    const text = document.getElementById("textInput").value;
+    if(!pw || !text) return alert("入力不足");
+
+    const encrypted = await encryptData(encoder.encode(text), pw);
+    document.getElementById("textOutput").value =
+        btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+}
+
+async function decryptText(){
+    const pw = document.getElementById("password").value;
+    const base64 = document.getElementById("textInput").value;
+    if(!pw || !base64) return alert("入力不足");
+
+    try{
+        const binary = Uint8Array.from(atob(base64), c=>c.charCodeAt(0));
+        const decrypted = await decryptData(binary.buffer, pw);
+        document.getElementById("textOutput").value = decoder.decode(decrypted);
+    }catch{
+        alert("復号失敗：鍵が違うかデータ破損");
+    }
+}
+
+async function encryptFile(){
+    const file = document.getElementById("fileInput").files[0];
+    const pw = document.getElementById("password").value;
+    if(!file || !pw) return alert("ファイルと鍵が必要");
+
+    const data = await file.arrayBuffer();
+    const encrypted = await encryptData(data, pw);
+
+    downloadFile(encrypted, file.name + ".encrypted");
+}
+
+async function decryptFile(){
+    const file = document.getElementById("fileInput").files[0];
+    const pw = document.getElementById("password").value;
+    if(!file || !pw) return alert("ファイルと鍵が必要");
+
+    try{
+        const data = await file.arrayBuffer();
+        const decrypted = await decryptData(data, pw);
+
+        const originalName = file.name.replace(/\.encrypted$/,"");
+        downloadFile(decrypted, originalName);
+    }catch{
+        alert("復号失敗：鍵違いまたは破損");
+    }
+}
+
+function downloadFile(data, filename){
+    const blob = new Blob([data]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
