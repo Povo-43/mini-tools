@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Advanced Encryption Suite</title>
+<title>Stable Encryption Suite</title>
 
 <style>
 :root{
-    --bg:#ffffff;
-    --text:#000000;
+    --bg:#fff;
+    --text:#000;
     --accent:#ffcc00;
 }
 body.dark{
-    --bg:#000000;
-    --text:#ffffff;
+    --bg:#000;
+    --text:#fff;
 }
 body{
     background:var(--bg);
     color:var(--text);
     font-family:system-ui;
-    max-width:950px;
+    max-width:900px;
     margin:40px auto;
 }
 .section{
@@ -27,7 +27,7 @@ body{
     padding:20px;
     margin-top:25px;
 }
-input,textarea,select{
+input{
     width:100%;
     padding:10px;
     border:2px solid var(--text);
@@ -39,8 +39,8 @@ button{
     border:2px solid var(--text);
     background:var(--accent);
     color:#000;
-    cursor:pointer;
     margin-top:10px;
+    cursor:pointer;
 }
 button:hover{
     background:var(--text);
@@ -56,15 +56,12 @@ button:hover{
     width:0%;
     background:var(--accent);
 }
-.toggle{
-    float:right;
-}
 </style>
 </head>
 <body>
 
-<h2>Encryption Suite</h2>
-<button class="toggle" onclick="toggleMode()">Light/Dark</button>
+<h2>Encryption Suite (Stable)</h2>
+<button onclick="toggleMode()">Light/Dark</button>
 
 <div class="section">
 <label>パスワード</label>
@@ -72,7 +69,6 @@ button:hover{
 </div>
 
 <div class="section">
-<h3>ファイル処理（Argon2 + AES-GCM）</h3>
 <input type="file" id="fileInput">
 <button onclick="encryptFile()">暗号化</button>
 <button onclick="decryptFile()">復号</button>
@@ -82,21 +78,37 @@ button:hover{
 <script src="https://cdn.jsdelivr.net/npm/argon2-browser/dist/argon2-bundled.min.js"></script>
 <script>
 
-const MAGIC=new TextEncoder().encode("KENC");
+const MAGIC="KENC";
 const VERSION=1;
-const ALG_ID=1; // 1=AES-GCM
-const CHUNK_SIZE=1024*1024*4; // 4MB
+const CHUNK_SIZE=4*1024*1024;
 
 function toggleMode(){
     document.body.classList.toggle("dark");
 }
 
-async function deriveKey(password,salt){
+function writeUint32(v){
+    const b=new Uint8Array(4);
+    new DataView(b.buffer).setUint32(0,v,true);
+    return b;
+}
+function writeUint64(v){
+    const b=new Uint8Array(8);
+    new DataView(b.buffer).setBigUint64(0,BigInt(v),true);
+    return b;
+}
+function readUint32(buf,off){
+    return new DataView(buf.buffer).getUint32(off,true);
+}
+function readUint64(buf,off){
+    return Number(new DataView(buf.buffer).getBigUint64(off,true));
+}
+
+async function deriveKey(password,salt,timeCost,memCost){
     const hash=await argon2.hash({
         pass:password,
         salt:salt,
-        time:3,
-        mem:65536,
+        time:timeCost,
+        mem:memCost,
         hashLen:32,
         parallelism:1,
         type:argon2.ArgonType.Argon2id
@@ -110,60 +122,55 @@ async function deriveKey(password,salt){
     );
 }
 
-function concat(...arrs){
-    let total=arrs.reduce((s,a)=>s+a.length,0);
-    let out=new Uint8Array(total);
-    let offset=0;
-    arrs.forEach(a=>{
-        out.set(a,offset);
-        offset+=a.length;
-    });
-    return out;
-}
-
 async function encryptFile(){
     const file=fileInput.files[0];
     if(!file)return alert("ファイル未選択");
     const pw=password.value;
     if(!pw)return alert("パスワード未入力");
 
-    bar.style.width="5%";
-
     const salt=crypto.getRandomValues(new Uint8Array(16));
-    const key=await deriveKey(pw,salt);
+    const timeCost=3;
+    const memCost=65536;
 
-    const header=concat(
-        MAGIC,
+    const key=await deriveKey(pw,salt,timeCost,memCost);
+
+    const headerParts=[
+        new TextEncoder().encode(MAGIC),
         new Uint8Array([VERSION]),
-        new Uint8Array([ALG_ID]),
         salt,
-        new Uint8Array(new Uint32Array([CHUNK_SIZE]).buffer)
-    );
+        new Uint8Array([timeCost]),
+        writeUint32(memCost),
+        writeUint64(file.size)
+    ];
 
-    let chunks=[header];
+    let chunks=[...headerParts];
 
     const reader=file.stream().getReader();
-    let total=0;
+    let processed=0;
+
     while(true){
         const {done,value}=await reader.read();
         if(done)break;
 
         const iv=crypto.getRandomValues(new Uint8Array(12));
-        const enc=await crypto.subtle.encrypt(
+        const encrypted=await crypto.subtle.encrypt(
             {name:"AES-GCM",iv:iv},
             key,
             value
         );
-        chunks.push(iv);
-        chunks.push(new Uint8Array(enc));
 
-        total+=value.length;
-        bar.style.width=Math.min(90,(total/file.size)*100)+"%";
+        const encArray=new Uint8Array(encrypted);
+
+        chunks.push(writeUint32(value.length));
+        chunks.push(iv);
+        chunks.push(encArray);
+
+        processed+=value.length;
+        bar.style.width=((processed/file.size)*100)+"%";
     }
 
-    const finalBlob=new Blob(chunks);
-    download(finalBlob,file.name+".encrypted");
-    bar.style.width="100%";
+    const blob=new Blob(chunks);
+    download(blob,file.name+".encrypted");
 }
 
 async function decryptFile(){
@@ -172,36 +179,53 @@ async function decryptFile(){
     const pw=password.value;
     if(!pw)return alert("パスワード未入力");
 
-    const buffer=new Uint8Array(await file.arrayBuffer());
+    const buf=new Uint8Array(await file.arrayBuffer());
+    let offset=0;
 
-    if(new TextDecoder().decode(buffer.slice(0,4))!=="KENC"){
-        return alert("非対応フォーマット");
-    }
+    if(new TextDecoder().decode(buf.slice(0,4))!==MAGIC)
+        return alert("非対応形式");
 
-    const salt=buffer.slice(6,22);
-    const key=await deriveKey(pw,salt);
+    offset=4;
+    const version=buf[offset++];
+    const salt=buf.slice(offset,offset+16);
+    offset+=16;
+    const timeCost=buf[offset++];
+    const memCost=readUint32(buf,offset);
+    offset+=4;
+    const originalSize=readUint64(buf,offset);
+    offset+=8;
 
-    let offset=26;
+    const key=await deriveKey(pw,salt,timeCost,memCost);
+
     let output=[];
+    let total=0;
 
-    while(offset<buffer.length){
-        const iv=buffer.slice(offset,offset+12);
+    while(offset<buf.length){
+        const chunkLen=readUint32(buf,offset);
+        offset+=4;
+
+        const iv=buf.slice(offset,offset+12);
         offset+=12;
-        const chunkEnd=Math.min(offset+CHUNK_SIZE+16,buffer.length);
-        const data=buffer.slice(offset,chunkEnd);
-        offset=chunkEnd;
+
+        const encLen=chunkLen+16;
+        const enc=buf.slice(offset,offset+encLen);
+        offset+=encLen;
 
         try{
             const dec=await crypto.subtle.decrypt(
                 {name:"AES-GCM",iv:iv},
                 key,
-                data
+                enc
             );
             output.push(new Uint8Array(dec));
+            total+=dec.byteLength;
         }catch{
-            return alert("復号失敗");
+            return alert("復号失敗（鍵違いまたは破損）");
         }
     }
+
+    if(total!==originalSize)
+        return alert("サイズ不一致");
 
     const blob=new Blob(output);
     download(blob,file.name.replace(".encrypted",""));
