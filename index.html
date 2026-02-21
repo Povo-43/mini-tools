@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>タッチテスト (Touch.force)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            -webkit-user-select: none; /* iOS Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+            touch-action: none; /* ジェスチャーによるスクロールなどを無効化 */
+        }
+        #instructions {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #555;
+        }
+        #output {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: left;
+            word-break: break-all; /* 長い文字列の折り返し */
+        }
+        #output p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+        #output strong {
+            color: #007bff;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #d9534f; /* 赤色で強調 */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="instructions">
+        <p>画面をタッチしてください。タッチした点の情報がリアルタイムで表示されます。</p>
+        <p>※デバイスやOSによっては、常に同じ値が表示される場合があります。</p>
+    </div>
+
+    <div id="output">
+        <p><strong>現在のタッチ情報:</strong></p>
+        <p><strong>X座標 (clientX):</strong> <span id="clientX">---</span></p>
+        <p><strong>Y座標 (clientY):</strong> <span id="clientY">---</span></p>
+        <p><strong>Pressure (force):</strong> <span id="force">---</span></p>
+        <p><strong>Radius X (radiusX):</strong> <span id="radiusX">---</span></p>
+        <p><strong>Radius Y (radiusY):</strong> <span id="radiusY">---</span></p>
+        <p><strong>Rotation Angle (rotationAngle):</strong> <span id="rotationAngle">---</span></p>
+        <p><strong>接触面積 (altitudeAngle):</strong> <span id="altitudeAngle">---</span></p>
+        <p><strong>方位角 (azimuthAngle):</strong> <span id="azimuthAngle">---</span></p>
+        <p><strong>タッチ数 (touches.length):</strong> <span id="touchCount">---</span></p>
+        <p><strong>イベントタイプ:</strong> <span id="eventType">---</span></p>
+    </div>
+
+    <script>
+        const clientXSpan = document.getElementById('clientX');
+        const clientYSpan = document.getElementById('clientY');
+        const forceSpan = document.getElementById('force');
+        const radiusXSpan = document.getElementById('radiusX');
+        const radiusYSpan = document.getElementById('radiusY');
+        const rotationAngleSpan = document.getElementById('rotationAngle');
+        const altitudeAngleSpan = document.getElementById('altitudeAngle');
+        const azimuthAngleSpan = document.getElementById('azimuthAngle');
+        const touchCountSpan = document.getElementById('touchCount');
+        const eventTypeSpan = document.getElementById('eventType');
+
+        // タッチイベントのリスナーを追加
+        document.body.addEventListener('touchstart', handleTouch);
+        document.body.addEventListener('touchmove', handleTouch);
+        document.body.addEventListener('touchend', handleTouchEnd);
+        document.body.addEventListener('touchcancel', handleTouchEnd); // タッチがキャンセルされた場合
+
+        function handleTouch(event) {
+            // イベントのデフォルト動作（スクロールなど）を防止
+            event.preventDefault();
+
+            eventTypeSpan.textContent = event.type;
+            touchCountSpan.textContent = event.touches.length;
+
+            if (event.touches.length > 0) {
+                const touch = event.touches[0]; // 最初のタッチ情報を取得
+
+                clientXSpan.textContent = touch.clientX.toFixed(2);
+                clientYSpan.textContent = touch.clientY.toFixed(2);
+
+                // forceプロパティが存在しないか、期待する値でなければ強調表示
+                if (typeof touch.force === 'undefined' || touch.force <= 0 || touch.force >= 1) {
+                    forceSpan.className = 'highlight'; // スタイルを適用
+                } else {
+                    forceSpan.className = ''; // スタイルを解除
+                }
+                forceSpan.textContent = (touch.force !== undefined) ? touch.force.toFixed(4) : '未サポート';
+
+                radiusXSpan.textContent = (touch.radiusX !== undefined) ? touch.radiusX.toFixed(2) : '未サポート';
+                radiusYSpan.textContent = (touch.radiusY !== undefined) ? touch.radiusY.toFixed(2) : '未サポート';
+                rotationAngleSpan.textContent = (touch.rotationAngle !== undefined) ? touch.rotationAngle.toFixed(2) : '未サポート';
+                altitudeAngleSpan.textContent = (touch.altitudeAngle !== undefined) ? touch.altitudeAngle.toFixed(2) : '未サポート';
+                azimuthAngleSpan.textContent = (touch.azimuthAngle !== undefined) ? touch.azimuthAngle.toFixed(2) : '未サポート';
+
+            } else {
+                // タッチがない場合はリセット
+                clientXSpan.textContent = '---';
+                clientYSpan.textContent = '---';
+                forceSpan.textContent = '---';
+                forceSpan.className = '';
+                radiusXSpan.textContent = '---';
+                radiusYSpan.textContent = '---';
+                rotationAngleSpan.textContent = '---';
+                altitudeAngleSpan.textContent = '---';
+                azimuthAngleSpan.textContent = '---';
+            }
+        }
+
+        function handleTouchEnd(event) {
+            eventTypeSpan.textContent = event.type;
+            touchCountSpan.textContent = event.touches.length; // 離れた後のタッチ数
+            if (event.touches.length === 0) {
+                 // 全てのタッチが離れたら情報をリセット
+                clientXSpan.textContent = '---';
+                clientYSpan.textContent = '---';
+                forceSpan.textContent = '---';
+                forceSpan.className = '';
+                radiusXSpan.textContent = '---';
+                radiusYSpan.textContent = '---';
+                rotationAngleSpan.textContent = '---';
+                altitudeAngleSpan.textContent = '---';
+                azimuthAngleSpan.textContent = '---';
+            }
+        }
+    </script>
+<footer>
+<p>&copy; povo43</p>
+</footer>
+</body>
+</html>
