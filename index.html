@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>discordのWebHookに手動で投げるサイト</title>
+    <style>
+        @font-face {
+            font-family: 'topfont';
+            src: url('ZenMaruGothic-Medium.ttf');
+        }
+
+        html, body {
+            font-family: 'topfont', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            padding-top: 10vh;
+            background: linear-gradient(45deg, #1abc89, #6db020);
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .input_emboard {
+            display: block;
+            margin: 10px auto;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: none;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        #color_input {
+            display: block;
+            margin: 10px auto;
+            width: 100px;
+            height: 40px;
+            border: none;
+        }
+
+        #divarea {
+            background-color: #ffffff;
+            display: inline-block;
+            border-radius: 300px;
+            padding: 10px;
+            box-shadow: 0 0 10px #ffffff;
+            transition: box-shadow 0.1s ease;
+            margin-top: 10px;
+        }
+
+        #divarea:hover, #divarea:focus-within {
+            box-shadow: 0 0 20px #ffffff;
+        }
+
+        input[type="text"] {
+            border: none;
+            font-size: 1.5em;
+            border-radius: 300px;
+            padding: 0.5em 1em;
+            color: #333;
+            width: 200px;
+        }
+
+        input:focus {
+            outline: none;
+        }
+
+        button {
+            border-radius: 300px;
+            border: none;
+            padding: 1em 2em;
+            color: #ffffff;
+            background: linear-gradient(45deg, #1abc89, #6db020);
+            cursor: pointer;
+            font-size: 1em;
+            margin-left: 10px;
+        }
+
+        button:hover {
+            box-shadow: 0 0 10px #bbbbbb;
+        }
+
+        #list {
+            background-color: #ffffff;
+            margin: 10vh 40px auto 40px;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 0 10px #ffffff;
+            height: 350px;
+            overflow-y: scroll;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            transition: box-shadow 0.1s ease;
+        }
+
+        #list::-webkit-scrollbar {
+            display: none;
+        }
+
+        #list p {
+            font-size: 2em;
+            margin: 0;
+            color: #999999;
+        }
+
+        @media screen and (max-width: 800px) {
+            #divarea {
+                display: block;
+                margin: 20px auto;
+                text-align: center;
+            }
+
+            input[type="text"], button {
+                display: block;
+                width: 80%;
+                margin: 10px auto;
+            }
+        }
+
+        small {
+            position: fixed;
+            color: #333333;
+            bottom: 20px;
+            width: 100%;
+            left: 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body id="body">
+    <h1>discordのWebHookに手動で投げるサイト</h1>
+
+    <input id="title_input" class="input_emboard" type="text" placeholder="タイトル">
+    <input type="color" id="color_input">
+
+    <div id="divarea">
+        <input id="input" type="text" placeholder="内容" autofocus>
+        <button onclick="inputted()">確定</button>
+    </div>
+
+    <input id="footer_input" class="input_emboard" type="text" placeholder="フッター">
+    <input id="webhookurl_input" class="input_emboard" type="text" placeholder="WebhookURL">
+
+    <small>※入力データはユーザーやサービス提供者の安全のために収集され、保管されます。</small>
+
+    <script>
+        document.getElementById("input").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                inputted();
+            }
+        });
+
+        function inputted() {
+            let input_text = document.getElementById("input").value;
+            let title_input = document.getElementById("title_input").value;
+            let footer_input = document.getElementById("footer_input").value;
+            let color_input = document.getElementById("color_input").value;
+            let webhookurl_input = document.getElementById("webhookurl_input").value;
+
+            if (input_text !== "" && webhookurl_input !== "") {
+                let databody = {
+                    "title": title_input,
+                    "content": input_text,
+                    "color": color_input,
+                    "footer": footer_input,
+                    "webhookurl": webhookurl_input
+                };
+
+                fetch("https://sendtodiscord.story-seller.workers.dev", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(databody)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("送信失敗");
+                    return res.text();
+                })
+                .then(text => console.log("成功:", text))
+                .catch(err => console.error("エラー:", err));
+            }
+        }
+    </script>
+</body>
+</html>
