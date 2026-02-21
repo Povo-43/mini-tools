@@ -1,0 +1,152 @@
+<html>
+    <head>
+        <title>ゴミ箱Sender</title>
+        <style>
+            @font-face {
+                font-family: 'topfont';
+                src: url(ZenMaruGothic-Medium.ttf);
+            }
+            html{
+                font-family: 'topfont', sans-serif;
+                background-color: #ffffff;
+            }
+            body{
+                overflow: hidden;
+                margin: 10px;
+                padding-top: 10vh;
+                border-radius: 10px;
+                background: linear-gradient(45deg, #1abc89, #6db020);
+                text-align: center;
+            }
+            #divarea{
+                background-color: #ffffff;
+                width: fit-content;
+                margin: 0 auto;
+                border-radius: 300px;
+                padding: 10px;
+                box-shadow: 0 0 10px #ffffff;
+                  transition: box-shadow 0.1s ease; /* ← ここがアニメーション */
+            }
+            input{
+                border: none;
+                font-size: 2em;
+                border-radius: 300px;
+                padding: 0 20px;
+                color: #999999;
+            }
+            input:focus{
+                outline: none;
+            }
+            #divarea:hover, #list:hover{
+                box-shadow: 0 0 20px #ffffff;
+            }
+            #divarea:focus-within{
+                box-shadow: 0 0 20px #ffffff;
+            }
+            button{
+                border-radius: 300px;
+                border: none;
+                padding: 1em 2em;
+                color: #ffffff;
+                background: linear-gradient(45deg, #1abc89, #6db020);
+            }
+            button:hover{
+                box-shadow: 0 0 10px #bbbbbb;
+            }
+            #list{
+                background-color: #ffffff;
+                margin: 10vh 40px auto 40px;
+                border-radius: 30px;
+                padding: 30px;
+                box-shadow: 0 0 10px #ffffff;
+                height: 350px;
+                overflow-y: scroll;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                transition: box-shadow 0.1s ease; /* ← ここがアニメーション */
+            }
+            #list p{
+                font-size: 2em;
+                margin: 0;
+                color: #999999;
+            }
+            @media screen and (max-width: 800px) {
+                #divarea{
+                    text-align: center;
+                }
+                #divarea button{
+                    margin-top: 1em;
+                }
+            }
+            small{
+                position: fixed;
+                color: #333333;
+                bottom: 20px;
+                width: 100%;
+                left: 0;
+            }
+            h1{
+                color: #fff;
+                font-size: 4em;
+            }
+        </style>
+    </head>
+    <body id="body">
+        <h1>ゴミ箱Sender</h1>
+        <div id="divarea">
+            <input id="input" type="text" autofocus>
+            <button onclick="inputted()">確定</button>
+        </div>
+        <div id="list">
+            <button id="listclear" onclick="localStorage.clear(); window.location.reload();">✕</button>
+        </div>
+        <small>※入力データは収集され、削除できません。</small>
+        <script>
+            let containts = [];
+            if(localStorage.getItem("containts") !== null){
+                containts = JSON.parse(localStorage.getItem("containts"));
+                containts.forEach(item => {
+                    document.getElementById("list").innerHTML = "<p>" + item + "</p><hr>" + document.getElementById("list").innerHTML;
+                
+                });
+            }
+
+            document.getElementById("input").addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    inputted();
+                }
+            });
+            
+            function inputted(){
+                let input_text = document.getElementById("input").value;
+                if(input_text !== ""){
+                    webhook();
+                    document.getElementById("list").innerHTML = "<p>" + input_text + "</p><hr>" + document.getElementById("list").innerHTML;
+                    document.getElementById("input").value = "";
+                    containts.push(input_text);
+                    localStorage.setItem("containts", JSON.stringify(containts)); 
+                }
+            }
+
+            function webhook(){
+                let input_text = document.getElementById("input").value;
+                let databody = {
+                    "content": input_text
+                }
+                fetch("https://sending.story-seller.workers.dev", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(databody)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("送信失敗");
+                    return res.text();
+                })
+                    .then(text => console.log("成功:", text))
+                    .catch(err => console.error("エラー:", err));
+            }
+        </script>
+    </body>
+</html>
