@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タイポグラフィ / 意味不短文ジェネレーター</title>
+<meta property="og:title" content="タイポグラフィ / 意味不文ジェネレーター">
+<meta property="og:description" content="意味不明なタイポグラフィを表示するサイト">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://povo-43.github.io/imihubun/typo/index.html">
+<meta property="og:image" content="https://povo-43.github.io/imihubun/typo/ogp.png">
+
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b0d12;
+  color: #e8e6df;
+  font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+}
+
+#stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg);  
+}
+
+.char {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  user-select: none;
+  transition: opacity 0.4s linear, transform 0.2s ease;  
+  cursor: pointer;
+}
+  
+.char:hover {  
+  transform: scale(1.5);  
+  z-index: 10;  
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: #00000050;
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  display: none;
+}
+
+#overlay .menu {
+  text-align: center;
+}
+
+#overlay button {
+  margin: 8px;
+  padding: 6px 14px;
+  background: #0000006d;
+  color: #e8e6df;
+  border: 1px solid #333;
+}
+#overlay button:hover{
+  box-shadow: #555 0px 0px 8px;
+}
+  :root {  
+  --bg: #0b0d12;  
+  --fg: #e8e6df;  
+  --btn-bg: #0000006d;  
+  --btn-border: #333;  
+  --btn-hover: #555;  
+}  
+[data-theme="light"] {  
+  --bg: #ffffff;  
+  --fg: #000000;  
+  --btn-bg: #f0f0f0;  
+  --btn-border: #999;  
+  --btn-hover: #777;  
+}  
+html, body {  
+  margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;  
+  background: var(--bg);  
+  color: var(--fg);  
+  font-family: 'Shippori Mincho', 'Noto Serif JP', serif;  
+}  
+#overlay button {  
+  margin: 8px; padding: 6px 14px;  
+  background: var(--btn-bg);  
+  color: var(--fg);  
+  border: 1px solid var(--btn-border);  
+}  
+#overlay button:hover {  
+  box-shadow: var(--btn-hover) 0px 0px 8px;  
+}
+
+</style>
+</head>
+
+<body>
+<div id="stage"></div>
+
+<div id="overlay" hidden>
+  <div class="menu">
+    <h1 style="margin: 0;">Typography</h1>
+    <p style="margin: 0;">意味不文ジェネレーター</p>
+    <h2>Menu</h2>
+    <button id="resume">再開</button>
+    <button id="reset">リセット</button>
+    <button id="toggle-theme">テーマ切替</button>
+    <button id="save">保存</button>
+    <button id="share">このページを共有</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+/* =========================
+ * 基本設定
+ * ========================= */
+
+const CELL = 16;
+const SIZES = [1, 1, 2, 2, 4, 4, 8];
+const LIFETIME = 50;
+const TICK = 10;
+
+/* =========================
+ * DOM
+ * ========================= */
+
+const stage = document.getElementById("stage");
+const overlay = document.getElementById("overlay");
+const resumeBtn = document.getElementById("resume");
+const resetBtn = document.getElementById("reset");
+const shareBtn = document.getElementById("share");
+
+/* =========================
+ * 状態
+ * ========================= */
+
+let cols = 0;
+let rows = 0;
+let grid = [];
+
+let wordData = null;
+let charQueue = [];
+
+let running = true;
+let timerId = null;
+
+let hasReachedBottom = false;
+
+/* =========================
+ * ユーティリティ
+ * ========================= */
+
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+/* =========================
+ * グリッド管理
+ * ========================= */
+
+function initGrid() {
+  cols = Math.floor(innerWidth / CELL);
+  rows = Math.floor(innerHeight / CELL);
+  grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+  stage.innerHTML = "";
+}
+
+function canPlace(x, y, size) {
+  if (x + size > cols || y + size > rows) return false;
+  for (let dy = 0; dy < size; dy++) {
+    for (let dx = 0; dx < size; dx++) {
+      if (grid[y + dy][x + dx]) return false;
+    }
+  }
+  return true;
+}
+
+function occupy(x, y, size, el) {
+  for (let dy = 0; dy < size; dy++) {
+    for (let dx = 0; dx < size; dx++) {
+      grid[y + dy][x + dx] = el;
+    }
+  }
+}
+
+function release(el) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (grid[y][x] === el) grid[y][x] = null;
+    }
+  }
+}
+
+function hasEmptyCell() {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (!grid[y][x]) return true;
+    }
+  }
+  return false;
+}
+
+/* =========================
+ * 単語生成
+ * ========================= */
+
+function renderStructure(template) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => {
+    const pool = wordData[key + "s"] || wordData[key];
+    return pool ? pick(pool) : "";
+  });
+}
+
+function generateSentence() {
+  const s = renderStructure(pick(wordData.structures));
+  return Math.random() < 0.5
+    ? s + " " + renderStructure(pick(wordData.structures))
+    : s;
+}
+
+function refillCharQueue() {
+  charQueue.push(...generateSentence().split(""));
+}
+
+/* =========================
+ * 文字生成
+ * ========================= */
+function createChar(ch, gx, gy, size) {
+  const el = document.createElement("div");
+  el.className = "char";
+  el.textContent = ch;
+  el._size = size;
+
+  const px = size * CELL;
+  el.style.width = px + "px";
+  el.style.height = px + "px";
+  el.style.left = gx * CELL + "px";
+  el.style.top = gy * CELL + "px";
+  el.style.fontSize = px * 0.85 + "px";
+  el.style.writingMode =
+    Math.random() < 0.35 ? "vertical-rl" : "horizontal-tb";
+
+  el._expired = false;
+
+  stage.appendChild(el);
+  occupy(gx, gy, size, el);
+
+  const lifetime = LIFETIME * (0.8 + 0.2 * Math.sqrt(size));
+
+  setTimeout(() => {
+    el._expired = true;
+  }, lifetime);
+}
+function collectCluster(x, y, radius = 2) {
+  const set = new Set();
+
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      const ny = y + dy;
+      const nx = x + dx;
+      if (ny < 0 || nx < 0 || ny >= rows || nx >= cols) continue;
+
+      const el = grid[ny][nx];
+      if (el && el._expired) {
+        set.add(el);
+      }
+    }
+  }
+  return [...set];
+}
+
+/* =========================
+ * 1ステップ描画
+ * ========================= */
+function pickSize(x, y) {
+  const candidates = SIZES.filter(s => canPlace(x, y, s));
+  if (candidates.length === 0) return null;
+
+  // 大きいサイズほど選ばれやすくする
+  const weights = candidates.map(s => Math.sqrt(s));
+  const sum = weights.reduce((a, b) => a + b, 0);
+
+  let r = Math.random() * sum;
+  for (let i = 0; i < candidates.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return candidates[i];
+  }
+  return candidates[candidates.length - 1];
+}
+
+function tickOnce() {
+  if (!wordData) return false;
+
+  if (charQueue.length === 0) {
+    refillCharQueue();
+  }
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (grid[y][x]) continue;
+
+      const ch = charQueue.shift();
+      if (!ch) return false;
+
+      const size = pickSize(x, y);
+      if (size) {
+        createChar(ch, x, y, size);
+        return true;
+      }
+
+      for (const size of sizes) {
+        if (canPlace(x, y, size)) {
+          createChar(ch, x, y, size);
+
+          if (!hasReachedBottom && size === 1 && y === rows - 1) {
+            hasReachedBottom = true;
+          }
+
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
+/* =========================
+ * 初期高速充填
+ * ========================= */
+
+function fastFillInitial() {
+  running = false;
+
+  let delay = 80;
+
+  function step() {
+    if (!hasEmptyCell() || !tickOnce()) {
+      running = true;
+      return;
+    }
+
+    delay = Math.max(10, delay * 0.97);
+    setTimeout(step, delay);
+  }
+
+  step();
+}
+
+
+/* =========================
+ * ループ制御
+ * ========================= */
+function removeChar(el) {
+  el._expired = false;
+  el.style.opacity = "0";
+  setTimeout(() => {
+    release(el);
+    el.remove();
+  }, 400);
+}
+
+function tick() {
+  if (!running) return;
+
+  tickOnce();
+
+  if (!hasEmptyCell()) {
+    const expired = [...document.querySelectorAll(".char")]
+      .filter(el => el._expired);
+
+    // 何も消せないなら何もしない
+    if (expired.length === 0) return;
+
+    // 上位 N 個を消す
+    const REMOVE_COUNT = 3; // ← ここ調整ポイント
+    for (let i = 0; i < Math.min(REMOVE_COUNT, expired.length); i++) {
+      const el = expired[i];
+      if (el._size === 1) {
+        const gx = Math.round(parseInt(el.style.left) / CELL);
+        const gy = Math.round(parseInt(el.style.top) / CELL);
+
+        const cluster = collectCluster(gx, gy, 2); // 約4×4
+        cluster.forEach(removeChar);
+      } else {
+        removeChar(el);
+      }
+
+    }
+  }
+}
+
+function startLoop() {
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(tick, TICK);
+}
+
+/* =========================
+ * UI制御
+ * ========================= */
+
+function pause() {
+  running = false;
+  overlay.hidden = false;
+}
+
+function resume() {
+  overlay.hidden = true;
+  running = true;
+}
+
+function resetAll() {
+  running = false;
+  hasReachedBottom = false;
+  initGrid();
+  charQueue.length = 0;
+  fastFillInitial();
+  running = true;
+  overlay.hidden = true;
+}
+
+/* =========================
+ * イベント
+ * ========================= */
+
+stage.addEventListener("click", () => {
+  if (running) pause();
+  overlay.style.display = "flex";
+  console.log("aaa");
+});
+
+
+resumeBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  resume();
+  overlay.style.display = "none";
+});
+resetBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  resetAll();
+});
+
+addEventListener("resize", () => {
+  initGrid();
+  fastFillInitial();
+});
+
+overlay.addEventListener("click", e => {
+  e.stopPropagation();
+  resume();
+  overlay.style.display = "none";
+});
+
+function toggleTheme() {  
+  const current = document.documentElement.getAttribute("data-theme");  
+  document.documentElement.setAttribute(  
+    "data-theme",  
+    current === "light" ? "dark" : "light"  
+  );  
+}  
+document.getElementById("toggle-theme").addEventListener("click", e => {  
+  e.stopPropagation();  
+  toggleTheme();  
+});
+
+let saving = false;
+
+document.getElementById("save").addEventListener("click", async e => {
+  if (saving) return;
+  saving = true;
+  document.getElementById("save").style.backgroundColor = "#555";
+  try {
+    const canvas = await html2canvas(stage);
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `意味不文ジェネレーター_${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+      saving = false;
+    });
+  document.getElementById("save").style.backgroundColor = "#1a1d26";
+  } catch (err) {
+    saving = false;
+    console.error(err);
+  document.getElementById("save").style.backgroundColor = "#1a1d26";
+  }
+  document.getElementById("save").style.backgroundColor = "#1a1d26";
+});
+
+shareBtn.addEventListener("click", e => {
+  e.stopPropagation();
+
+  const url = location.href;
+  const text = "意味不明短文ジェネレーター";
+
+  if (navigator.share) {
+    navigator.share({
+      title: document.title,
+      text,
+      url
+    }).catch(() => {
+      // ユーザーキャンセルは何もしない
+    });
+  } else {
+    // X フォールバック
+    const xUrl =
+      "https://twitter.com/intent/tweet?" +
+      new URLSearchParams({
+        text,
+        url
+      }).toString();
+
+    window.open(xUrl, "_blank", "noopener");
+  }
+});
+addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (overlay.hidden) return;
+
+  resume();
+});
+
+/* =========================
+ * 起動
+ * ========================= */
+
+async function start() {
+  const res = await fetch("../words.json");
+  wordData = await res.json();
+
+  initGrid();
+  fastFillInitial();
+  startLoop();
+}
+
+start();
+</script>
+
+<!--
+<script src="//cdn.jsdelivr.net/npm/eruda">
+</script><script>eruda.init();</script>
+-->
+
+</body>
+</html>
