@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人が消えるカメラ</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #2C2C2C;
+            --accent-blue: #DD5454;
+            --accent-green: #2ED200;
+            --accent-purple: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-top: 40px;
+            font-size: 24px;
+            letter-spacing: 0.05em;
+        }
+
+        p.description {
+            color: var(--text-sub);
+            font-size: 14px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .launcher-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* 各モードの色分け */
+        .card.median { border-left: 6px solid var(--accent-blue); }
+        .card.live { border-left: 6px solid var(--accent-green); }
+        .card.final { border-left: 6px solid var(--accent-purple); }
+
+        .card h2 {
+            margin: 0;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+
+        .tag {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            text-transform: uppercase;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 40px 0 20px;
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        footer a { color: var(--accent-blue); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <h1>人が消えるカメラシリーズ</h1>
+    <p class="description">用途に合わせてアルゴリズムを選択してください</p>
+
+    <div class="launcher-container">
+        
+        <a href="./final.html" class="card final">
+            <h2>自然化処理込み版<span class="tag">Professional</span></h2>
+            <p>Workerによる高速解析と最短距離法を採用。最も自然で高画質な背景を生成します。</p>
+        </a>
+
+        <a href="./live_final.html" class="card final">
+            <h2>Live多数決露光版<span class="tag">Interesting</h2>
+            <p>多数決露光を使用。Live版での究極の完成度。</p>
+        </a>
+        
+        <a href="./median.html" class="card median">
+            <h2>中央値版<span class="tag">Basic</span></h2>
+            <p>シンプルに数枚撮影して中央値を算出。最もシンプルなので短時間の固定撮影に最適です。</p>
+        </a>
+
+        <a href="./live.html" class="card live">
+            <h2>Live版 <span class="tag">Lightweight</span></h2>
+            <p>移動平均を使ってリアルタイムに背景を学習。人が少しずつ消えていく様子を確認できます。</p>
+        </a>
+        
+        <a href="./remain.html" class="card live">
+            <h2>人が残る版 <span class="tag">reverse</span></h2>
+            <p>動きの経過が残ります。</p>
+        </a>
+    </div>
+
+    <footer>
+        &copy; 2026 <a href="https://imme.kotoca.net">Povo43</a>
+    </footer>
+
+</body>
+</html>
