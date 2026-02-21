@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mic → Amplify (with anti-feedback)</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP"; padding: 18px; max-width:900px; margin:auto; }
+  h1{font-size:1.3rem}
+  .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+  label{font-size:0.95rem}
+  input[type=range]{width:220px}
+  canvas{border:1px solid #ddd; width:100%; height:80px; display:block}
+  .note{font-size:0.9rem;color:#444}
+  button{padding:8px 12px;border-radius:6px;border:1px solid #bbb;background:#f6f6f6}
+</style>
+</head>
+<body>
+<h1>マイク → 増幅（ハウリング対策付き）</h1>
+
+<div class="controls">
+  <button id="startBtn">開始</button>
+  <button id="stopBtn" disabled>停止</button>
+  <a href="./to_text.html">文字起こし</a>
+  <label>ゲイン:
+    <input id="gainSlider" type="range" min="0" max="6" value="1" step="0.01" />
+    <span id="gainVal">1.00x</span>
+  </label>
+  <label><input id="muteChk" type="checkbox"/> ミュート</label>
+  <label><input id="autoNotchChk" type="checkbox" checked/> 自動ノッチフィルタ</label>
+</div>
+
+<div class="note">
+  推奨: スピーカーからの再生をマイクが拾うとハウリングが起きます。**ヘッドホン（耳掛け／インイヤー）を使う**のが最も確実です。ボリュームは小さめから上げてください。
+</div>
+
+<canvas id="viz" width="800" height="120"></canvas>
+
+<script>
+(async function(){
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const gainSlider = document.getElementById('gainSlider');
+  const gainVal = document.getElementById('gainVal');
+  const muteChk = document.getElementById('muteChk');
+  const autoNotchChk = document.getElementById('autoNotchChk');
+  const canvas = document.getElementById('viz');
+  const ctx = canvas.getContext('2d');
+
+  let ac = null;
+  let stream = null;
+  let src = null;
+  let gainNode = null;
+  let hpFilter = null;
+  let compressor = null;
+  let analyser = null;
+  let notch = null;
+
+  // auto-notch detection state
+  let detectInterval = null;
+  let lastNotchFreq = 0;
+  const MIN_PEAK_DB = -40; // 閾値：ピークがこのdBより大きければノッチを入れる
+  const COOLDOWN_MS = 800; // ノッチ周波数変更の最小間隔
+  let lastNotchSetTime = 0;
+
+  function drawViz() {
+    if (!analyser) return;
+    requestAnimationFrame(drawViz);
+    const fftSize = analyser.fftSize;
+    const buf = new Uint8Array(fftSize/2);
+    analyser.getByteFrequencyData(buf);
+
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    const w = canvas.width;
+    const h = canvas.height;
+    const barWidth = w / buf.length;
+
+    for (let i=0;i<buf.length;i++){
+      const v = buf[i]/255;
+      const x = i * barWidth;
+      const y = h - v*h;
+      ctx.fillStyle = 'rgba(40,120,200,0.9)';
+      ctx.fillRect(x, y, barWidth*0.9, v*h);
+    }
+    // draw notch freq indicator
+    if (lastNotchFreq > 0) {
+      const nyquist = ac.sampleRate/2;
+      const idx = Math.round((lastNotchFreq/nyquist) * buf.length);
+      const x = idx * barWidth;
+      ctx.fillStyle = 'rgba(255,0,0,0.6)';
+      ctx.fillRect(x,0,2,h);
+      ctx.fillStyle = '#900';
+      ctx.fillText('notch ' + Math.round(lastNotchFreq) + ' Hz', 6, 12);
+    }
+  }
+
+  async function start() {
+    try {
+      startBtn.disabled = true;
+      // getUserMedia の制約：エコーキャンセルとノイズ抑制を有効にする（ただし自動AGCは切る）
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: false
+        },
+        video: false
+      });
+
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      src = ac.createMediaStreamSource(stream);
+
+      // ハイパス（低周波振動除去）
+      hpFilter = ac.createBiquadFilter();
+      hpFilter.type = 'highpass';
+      hpFilter.frequency.value = 80; // 80Hz 以下をカット（調整可）
+      hpFilter.Q.value = 0.7;
+
+      // アナライザ（可視化＆ピーク検出）
+      analyser = ac.createAnalyser();
+      analyser.fftSize = 2048;
+
+      // ゲイン（ユーザー操作で増幅）
+      gainNode = ac.createGain();
+      gainNode.gain.value = parseFloat(gainSlider.value);
+
+      // コンプレッサ（急激なピークを抑える）
+      compressor = ac.createDynamicsCompressor();
+      // ここは控えめに設定（必要に応じ調整）
+      compressor.threshold.value = -10;
+      compressor.knee.value = 12;
+      compressor.ratio.value = 6;
+      compressor.attack.value = 0.005;
+      compressor.release.value = 0.25;
+
+      // ノッチ（自動検出で頻度をセット）
+      notch = ac.createBiquadFilter();
+      notch.type = 'notch';
+      notch.frequency.value = 1000;
+      notch.Q.value = 30; // 高いQ で鋭いノッチ（慎重に）
+      // 初期は bypass（ゲイン1） — we'll insert node but toggle by freq/dB checks
+
+      // 接続： source -> hp -> analyser -> (notch) -> gain -> compressor -> destination
+      src.connect(hpFilter);
+      hpFilter.connect(analyser);
+      analyser.connect(notch);
+      notch.connect(gainNode);
+      gainNode.connect(compressor);
+      compressor.connect(ac.destination);
+
+      drawViz();
+      stopBtn.disabled = false;
+
+      // auto-notch 検出ループ
+      if (autoNotchChk.checked) startAutoNotch();
+
+      // safety: mute checkbox handling
+      updateMute();
+
+    } catch (err) {
+      console.error(err);
+      alert('マイク取得に失敗しました: ' + err.message);
+      startBtn.disabled = false;
+    }
+  }
+
+  function stop() {
+    stopBtn.disabled = true;
+    startBtn.disabled = false;
+    if (detectInterval) {
+      clearInterval(detectInterval); detectInterval = null;
+    }
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    if (ac) {
+      try { ac.close(); } catch(e){}
+      ac = null;
+    }
+    src = null; gainNode = null; analyser = null; notch = null; hpFilter = null; compressor = null;
+    lastNotchFreq = 0;
+  }
+
+  function updateGainUI() {
+    const g = parseFloat(gainSlider.value);
+    gainVal.textContent = g.toFixed(2) + 'x';
+    if (gainNode) gainNode.gain.value = g;
+  }
+
+  function updateMute() {
+    const m = muteChk.checked;
+    if (gainNode) gainNode.gain.value = m ? 0 : parseFloat(gainSlider.value);
+  }
+
+  function startAutoNotch() {
+    if (!analyser || !ac || !notch) return;
+    const fftSize = analyser.fftSize;
+    const buf = new Float32Array(fftSize/2);
+    const sampleRate = ac.sampleRate;
+    detectInterval = setInterval(()=>{
+      analyser.getFloatFrequencyData(buf); // dB values (negative)
+      // find max bin
+      let maxVal = -Infinity;
+      let maxIdx = -1;
+      for (let i=0;i<buf.length;i++){
+        if (buf[i] > maxVal) { maxVal = buf[i]; maxIdx = i; }
+      }
+      // convert bin to frequency
+      const nyquist = sampleRate / 2;
+      const freq = maxIdx * nyquist / buf.length;
+      const now = Date.now();
+
+      // If peak loud enough and not very low freq (ignore <120Hz) and cooldown passed -> set notch
+      if (maxVal > MIN_PEAK_DB && freq > 120 && (now - lastNotchSetTime) > COOLDOWN_MS) {
+        // don't set notch near voice fundamental typically <300Hz; but feedback often at resonant freq -> let user test
+        // set notch
+        notch.frequency.setTargetAtTime(freq, ac.currentTime, 0.02);
+        notch.Q.setTargetAtTime(25, ac.currentTime, 0.02);
+        lastNotchFreq = freq;
+        lastNotchSetTime = now;
+        // slowly relax notch after some time (clearing)
+        setTimeout(()=> {
+          // reduce notch effect gradually to avoid permanent aggressive filtering
+          notch.Q.setTargetAtTime(1, ac.currentTime, 0.5);
+          // and clear lastNotchFreq after relaxation
+          setTimeout(()=>{ lastNotchFreq = 0; }, 700);
+        }, 2000);
+      }
+    }, 220); // roughly 4-5 times/sec
+  }
+
+  // UI events
+  startBtn.addEventListener('click', async () => {
+    await start();
+  });
+  stopBtn.addEventListener('click', () => {
+    stop();
+  });
+  gainSlider.addEventListener('input', () => {
+    updateGainUI();
+  });
+  muteChk.addEventListener('change', () => updateMute());
+  autoNotchChk.addEventListener('change', () => {
+    if (!analyser) return;
+    if (autoNotchChk.checked) {
+      if (!detectInterval) startAutoNotch();
+    } else {
+      if (detectInterval) { clearInterval(detectInterval); detectInterval = null; lastNotchFreq = 0; }
+      // reset notch Q
+      if (notch && ac) notch.Q.setTargetAtTime(1, ac.currentTime, 0.02);
+    }
+  });
+
+  // initialize UI
+  updateGainUI();
+})();
+</script>
+</body>
+</html>
