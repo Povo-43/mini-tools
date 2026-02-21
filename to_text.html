@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>もじおこしアプリ</title>
+<style>
+  body { font-family: sans-serif; margin: 2rem; }
+  button { font-size: 1rem; padding: 0.5rem 1rem; margin: 0.5rem 0; }
+  #transcript { margin-top: 1rem; white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; }
+</style>
+</head>
+<body>
+
+<h1>もじおこしアプリ</h1>
+<button id="start">録音開始</button>
+<button id="stop" disabled>録音停止</button>
+
+<div id="transcript">ここに文字が表示されます…</div>
+
+<script>
+const startBtn = document.getElementById("start");
+const stopBtn = document.getElementById("stop");
+const transcriptDiv = document.getElementById("transcript");
+
+let recognition;
+
+if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('このブラウザは音声認識に対応していません');
+} else {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ja-JP'; // 日本語
+    recognition.interimResults = true; // 中間結果も取得
+    recognition.continuous = true; // 連続認識
+
+    recognition.onresult = (event) => {
+        let text = '';
+        for (let i = 0; i < event.results.length; i++) {
+            text += event.results[i][0].transcript;
+        }
+        transcriptDiv.textContent = text;
+    };
+
+    recognition.onerror = (event) => {
+        console.error('認識エラー', event);
+    };
+}
+
+startBtn.onclick = () => {
+    recognition.start();
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+};
+
+stopBtn.onclick = () => {
+    recognition.stop();
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+};
+</script>
+
+</body>
+</html>
