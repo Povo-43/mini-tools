@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>意味不短文ジェネレーター</title>
+    <meta property="og:title" content="意味不明短文ジェネレーター">
+    <meta property="og:description" content="はい。布団は水筒で窓枠を学習します。ええ、それは本当です。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://povo-43.github.io/imihubun">
+    <meta property="og:image" content="https://kotoca.net/bg.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="意味不明短文ジェネレーター">
+    <meta name="twitter:description" content="自動生成されるカオスな文章を楽しみましょう。">
+    <meta name="twitter:image" content="https://povo-43.github.io/imihubun/typo/ogp.png">
+
+    <style>
+:root {
+  --bg-color: #0b0d12;
+  --card-bg: #11131a;
+  --text-color: #e8e6df;
+  --accent-color: #c9a24d;
+  --secondary-btn: #1a1d26;
+  --secondary-text: #9a9a9a;
+}
+
+[data-theme="light"] {
+  --bg-color: #f3f1eb;
+  --card-bg: #ffffff;
+  --text-color: #2b2b2b;
+  --accent-color: #b08d3c;
+  --secondary-btn: #e5e2d9;
+  --secondary-text: #6a6a6a;
+}
+
+body {
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* テーマ切替 */
+.theme-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+/* メインカード */
+.container {
+  width: min(92vw, 520px);
+  padding: clamp(24px, 5vw, 48px);
+  background: var(--card-bg);
+  text-align: center;
+
+  box-shadow:
+    0 0 0 1px rgba(201,162,77,0.22),
+    0 0 48px rgba(201,162,77,0.1);
+}
+
+/* 生成文 */
+#text-display {
+  font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+  font-size: clamp(1.1rem, 4.5vw, 1.5rem);
+  line-height: 1.9;
+  letter-spacing: 0.05em;
+
+  min-height: 7em;
+  margin-bottom: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* はみ出し対策 */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  text-align: center;
+
+  transition: opacity 0.4s ease;
+}
+
+/* ボタン群 */
+.button-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ボタン共通 */
+button {
+  padding: 12px 22px;
+  border: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.25s ease,
+    box-shadow 0.3s ease;
+}
+
+/* 主ボタン */
+.btn-generate {
+  background-color: var(--accent-color);
+  color: #111;
+  font-weight: 600;
+
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.15),
+    0 0 22px rgba(201,162,77,0.35);
+}
+
+/* 副ボタン */
+.btn-copy,
+.btn-share,
+.btn-theme {
+  background-color: var(--secondary-btn);
+  color: var(--text-color);
+}
+
+/* 操作感 */
+button:hover {
+  opacity: 0.92;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+/* コピー成功 */
+.copy-success {
+  background-color: #3a7f5f !important;
+  color: #fff !important;
+  box-shadow: 0 0 18px rgba(58,127,95,0.6);
+}
+
+/* フッター */
+footer {
+  margin-top: 32px;
+  font-size: 0.75rem;
+  color: var(--secondary-text);
+  text-align: center;
+}
+
+/* ==== スマホ最適化 ==== */
+@media (max-width: 480px) {
+  .button-group {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  #text-display {
+    min-height: 6em;
+  }
+}
+
+    </style>
+</head>
+<body>
+
+<div class="theme-toggle">
+    <button class="btn-theme" onclick="toggleTheme()" id="theme-btn">☀️ Mode</button>
+</div>
+
+<div class="container">
+    <div id="text-display">読み込み中...</div>
+        <div class="button-group">
+        <button class="btn-generate" onclick="generate()">文を変える</button> 
+        <button class="btn-copy" onclick="copyText()" id="copy-btn">コピー</button>
+        <button class="btn-share" onclick="share()">共有する</button>
+        <button class="btn-copy" onclick="location.href='./typo/index.html'">タイポ</button>
+        <button class="btn-copy" onclick="location.href='./sns/index.html'">SNS</button>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 <a href="https://github.com/TeamKOTOCA" target="_blank" rel="noopener noreferrer">Povo43</a></p>
+</footer>
+
+<script>
+    let wordData = null;
+
+    // テーマ切り替え
+    function toggleTheme() {
+        const body = document.documentElement;
+        const btn = document.getElementById('theme-btn');
+        if (body.getAttribute('data-theme') === 'light') {
+            body.removeAttribute('data-theme');
+            btn.innerText = "☀️ Mode";
+        } else {
+            body.setAttribute('data-theme', 'light');
+            btn.innerText = "🌙 Mode";
+        }
+    }
+
+    // データの読み込み
+    async function loadWords() {
+        try {
+            const response = await fetch('words.json');
+            wordData = await response.json();
+            generate(); 
+        } catch (error) {
+            document.getElementById('text-display').innerText = "words.jsonの読み込みに失敗しました。";
+        }
+    }
+
+    // 文の生成
+    function generate() {
+      if (!wordData) return;
+    
+      const structure = pick(wordData.structures);
+      const sentence = renderStructure(structure);
+    
+      // 低確率で2文
+      const finalResult =
+        Math.random() < 0.4
+          ? sentence + " " + renderStructure(pick(wordData.structures))
+          : sentence;
+    
+      document.getElementById('text-display').innerText = finalResult;
+    }
+
+    
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    
+    function renderStructure(template) {
+      return template.replace(/\{(\w+)\}/g, (_, key) => {
+        const pool = wordData[key + "s"] || wordData[key];
+        if (!pool) return "";
+        return pick(pool);
+      });
+    }
+
+    
+    // クリップボードにコピーする関数
+    async function copyText() {
+        const text = document.getElementById('text-display').innerText;
+        const btn = document.getElementById('copy-btn');
+        const originalText = btn.innerText;
+    
+        try {
+            await navigator.clipboard.writeText(text);
+            
+            // 見た目のフィードバック
+            btn.innerText = "完了！";
+            btn.classList.add('copy-success');
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('copy-success');
+            }, 1500); // 1.5秒後に元に戻す
+        } catch (err) {
+            console.error('コピーに失敗しました', err);
+            alert("コピーできませんでした。");
+        }
+    }
+
+
+    // 共有機能
+    function share() {
+        const text = document.getElementById('text-display').innerText;
+        const url = window.location.href;
+        if (navigator.share) {
+            navigator.share({ title: '意味不短文ジェネレーター', text: text, url: url });
+        } else {
+            const twitterUrl =
+              `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + " #意味不明文ジェネレータ")}&url=${encodeURIComponent(url)}`;
+
+            window.open(twitterUrl, '_blank');
+        }
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Space') {
+          event.preventDefault();
+          generate();
+        }
+    });
+
+    loadWords();
+</script>
+
+</body>
+</html>

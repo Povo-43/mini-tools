@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>意味不SNS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Material+Symbols+Outlined:FILL@0..1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06090d;
+      --panel: #0f151d;
+      --panel-soft: #151d27;
+      --line: #233244;
+      --text: #e7eef8;
+      --sub: #8c9cb1;
+      --accent: #3ba3ff;
+      --accent-soft: #1a2f43;
+      --good: #40d97b;
+      --warn: #ffa652;
+      --heart: #ff538f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, #0d1d32 0, transparent 40%),
+        radial-gradient(circle at 85% 5%, #1c1235 0, transparent 35%),
+        var(--bg);
+      font-family: "Inter", "Hiragino Sans", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: clamp(10px, 2vw, 20px);
+    }
+
+    .app {
+      width: min(100%, 740px);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, #0a1017 0%, #090f15 100%);
+      overflow: clip;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(9px);
+      background: rgba(10, 16, 23, 0.86);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 18px 12px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .brand {
+      font-size: 1.07rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .brand .material-symbols-outlined {
+      color: var(--accent);
+      font-variation-settings: "FILL" 1;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.2s ease;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(120deg, var(--accent), #4b7fff);
+      color: #fff;
+      padding: 8px 14px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      background: var(--panel);
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 4px;
+    }
+
+    .tab {
+      text-align: center;
+      font-size: 0.84rem;
+      color: var(--sub);
+      padding: 7px 0;
+      border-radius: 999px;
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--panel-soft);
+      font-weight: 700;
+    }
+
+    .composer {
+      margin: 14px 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #0f1721 0%, #0b1219 100%);
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+    }
+
+    .avatar,
+    .composer-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #ffffff2a;
+      background: #0d151f;
+    }
+
+    .composer-box {
+      color: var(--sub);
+      border-bottom: 1px solid #1f2f42;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .composer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .icon-row {
+      display: flex;
+      gap: 10px;
+      color: var(--accent);
+    }
+
+    .icon-row .material-symbols-outlined {
+      font-size: 20px;
+      padding: 6px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+    }
+
+    .feed {
+      border-top: 1px solid var(--line);
+    }
+
+    .post {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      animation: rise 0.2s ease;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .name {
+      font-weight: 700;
+    }
+
+    .id, .time {
+      color: var(--sub);
+      font-size: 0.87rem;
+    }
+
+    .content {
+      line-height: 1.7;
+      margin-bottom: 10px;
+      word-break: break-word;
+    }
+
+    .post-actions {
+      display: flex;
+      justify-content: space-between;
+      color: var(--sub);
+      padding-right: 12px;
+    }
+
+    .action {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.84rem;
+    }
+
+    .action .material-symbols-outlined {
+      font-size: 18px;
+    }
+
+    .action.reply:hover { color: var(--accent); }
+    .action.repost:hover { color: var(--good); }
+    .action.like:hover { color: var(--heart); }
+    .action.views:hover { color: var(--warn); }
+
+    .loading {
+      text-align: center;
+      color: var(--sub);
+      padding: 20px;
+      font-size: 0.9rem;
+    }
+
+    .sentinel {
+      height: 2px;
+    }
+
+    @media (max-width: 540px) {
+      .app {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+      }
+
+      body {
+        padding: 0;
+      }
+
+      .top,
+      .composer,
+      .post {
+        margin-left: 0;
+        margin-right: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="top-row">
+        <div class="brand">
+          <span class="material-symbols-outlined">neurology</span>
+          <span>意味不SNS</span>
+        </div>
+        <button class="btn btn-primary" id="reload">
+          <span class="material-symbols-outlined">autorenew</span>
+          リロード
+        </button>
+      </div>
+      <div class="tabs">
+        <div class="tab active">おすすめ</div>
+        <div class="tab">フォロー中(0)</div>
+      </div>
+    </header>
+
+    <section class="composer">
+      <img class="composer-avatar" src="https://i.pravatar.cc/96?img=68" alt="投稿者アイコン">
+      <div>
+        <div class="composer-box">何かが起きている気がする...でも言語化できない...</div>
+        <div class="composer-actions">
+          <div class="icon-row">
+            <span class="material-symbols-outlined">image</span>
+            <span class="material-symbols-outlined">gif_box</span>
+            <span class="material-symbols-outlined">poll</span>
+          </div>
+          <button class="btn btn-primary" id="dummy-post">投稿(できない)</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="feed" class="feed"></section>
+    <div id="loading" class="loading">スクロールすると更に意味不明な投稿が湧きます...</div>
+    <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const first = ["量子", "ふにゃ", "逆流", "冷凍", "バグ", "斜め", "泡立つ", "月面", "未読", "幻覚", "炭酸", "圧縮", "擬態", "重力", "電波"];
+    const second = ["たぬき", "Wi-Fi", "納豆", "信号", "エレベータ", "カーテン", "ソケット", "ラーメン", "ピアノ", "野生", "天井", "豆腐", "プロトコル", "階層", "惑星"];
+    const suffix = ["主任", "係", "先輩", "bot", "司令", "名人", "博士", "塾長", "観測者", "調整官", "係長", "参謀"];
+
+    const nouns = ["雲", "冷蔵庫", "仕様書", "野菜", "目薬", "磁石", "バナナ", "風", "会議", "靴下", "階段", "信号機", "扇風機", "衛星", "座標", "議事録"];
+    const verbs = ["寝返りした", "増殖してる", "裏返った", "泣いてる", "圧縮された", "飛び散った", "停電した", "発酵した", "横断した", "更新された", "ログインした", "光った"];
+    const endings = ["らしい", "っぽい", "知らんけど", "多分", "それはそれ", "異論は認める", "寝る", "急いでメモ", "概ね理解", "収束しない"];
+    const connectors = ["なのに", "だから", "そして", "なのです", "ゆえに", "突然", "しかし", "それでも", "いったん", "結果として"];
+
+    const feed = document.getElementById("feed");
+    const loading = document.getElementById("loading");
+    const sentinel = document.getElementById("sentinel");
+
+    let postCount = 0;
+    let isLoading = false;
+
+    const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    function makeName() {
+      return `${random(first)}${random(second)}${random(suffix)}`;
+    }
+
+    function makeSentence() {
+      const segments = [
+        `${random(nouns)}が${random(verbs)}${random(endings)}`,
+        `${random(connectors)}${random(nouns)}は${random(verbs)}`
+      ];
+
+      if (Math.random() > 0.35) {
+        segments.push(`${random(nouns)}だけ${random(endings)}`);
+      }
+
+      return segments.join("。") + "。";
+    }
+
+    function createPost() {
+      const post = document.createElement("article");
+      post.className = "post";
+
+      postCount += 1;
+      const avatarId = Math.floor(Math.random() * 70) + 1;
+      const minutesAgo = Math.floor(Math.random() * 59) + 1;
+
+      post.innerHTML = `
+        <img class="avatar" src="https://i.pravatar.cc/96?img=${avatarId}" alt="${postCount}番ユーザーのアイコン" loading="lazy">
+        <div>
+          <div class="meta">
+            <span class="name">${makeName()}</span>
+            <span class="id">@${Math.random().toString(36).slice(2, 9)}</span>
+            <span class="time">· ${minutesAgo}分</span>
+          </div>
+          <div class="content">${makeSentence()}</div>
+          <div class="post-actions">
+            <span class="action reply"><span class="material-symbols-outlined">chat_bubble</span>${Math.floor(Math.random() * 250)}</span>
+            <span class="action repost"><span class="material-symbols-outlined">repeat</span>${Math.floor(Math.random() * 700)}</span>
+            <span class="action like"><span class="material-symbols-outlined">favorite</span>${Math.floor(Math.random() * 2500)}</span>
+            <span class="action views"><span class="material-symbols-outlined">bar_chart</span>${Math.floor(Math.random() * 11000)}</span>
+          </div>
+        </div>
+      `;
+
+      return post;
+    }
+
+    function appendPosts(batch = 8) {
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < batch; i += 1) {
+        fragment.appendChild(createPost());
+      }
+      feed.appendChild(fragment);
+    }
+
+    function resetFeed() {
+      postCount = 0;
+      feed.innerHTML = "";
+      appendPosts(10);
+      loading.textContent = "更新完了。スクロールでさらに追加されます。";
+    }
+
+    async function loadMore() {
+      if (isLoading) return;
+      isLoading = true;
+      loading.textContent = "読み込み中... 意味不明粒子を収集中";
+
+      await new Promise((resolve) => setTimeout(resolve, 420));
+      appendPosts(6);
+
+      loading.textContent = "スクロールすると更に意味不明な投稿が湧きます...";
+      isLoading = false;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry.isIntersecting) {
+        loadMore();
+      }
+    }, {
+      root: null,
+      rootMargin: "500px 0px",
+      threshold: 0.01
+    });
+
+    observer.observe(sentinel);
+
+    document.getElementById("reload").addEventListener("click", resetFeed);
+    document.getElementById("dummy-post").addEventListener("click", () => {
+      loading.textContent = "投稿はできませんが、世界は少しだけ歪みました。";
+      setTimeout(() => {
+        loading.textContent = "スクロールすると更に意味不明な投稿が湧きます...";
+      }, 1300);
+    });
+
+    resetFeed();
+  </script>
+</body>
+</html>
