@@ -1,2 +1,0 @@
-# mini-tools
-Povoのミニツール集
