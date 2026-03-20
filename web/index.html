@@ -15,7 +15,7 @@
       --accent: #111;
       --accent-soft: #e7ddbb;
       --shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
-      --radius: 20px;
+      --radius: 0px;
     }
 
     * { box-sizing: border-box; }
@@ -63,7 +63,7 @@
       align-items: center;
       gap: 8px;
       padding: 6px 10px;
-      border-radius: 999px;
+      border-radius: 0;
       background: var(--accent-soft);
       font-size: 0.84rem;
       font-weight: 700;
@@ -120,16 +120,20 @@
 
     .tab-actions {
       display: grid;
-      gap: 10px;
-      margin-top: 18px;
+      gap: 8px;
+      margin-top: 14px;
     }
 
     .tab-button {
       width: 100%;
       border: 1px solid var(--border);
       background: var(--panel-strong);
-      border-radius: 16px;
-      padding: 14px;
+      border-radius: 0;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
       text-align: left;
       cursor: pointer;
       transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
@@ -137,7 +141,7 @@
 
     .tab-button:hover,
     .tab-button:focus-visible {
-      transform: translateY(-1px);
+      transform: translateX(2px);
       border-color: rgba(0, 0, 0, 0.28);
       outline: none;
     }
@@ -146,18 +150,31 @@
       background: var(--accent);
       color: var(--bg);
       border-color: var(--accent);
+      box-shadow: inset 4px 0 0 var(--accent-soft);
     }
 
     .tab-button strong {
       display: block;
-      margin-bottom: 4px;
-      font-size: 1rem;
+      margin-bottom: 2px;
+      font-size: 0.98rem;
     }
 
     .tab-button span {
-      font-size: 0.9rem;
-      line-height: 1.45;
-      opacity: 0.88;
+      font-size: 0.84rem;
+      line-height: 1.35;
+      opacity: 0.78;
+    }
+
+    .tab-index {
+      min-width: 2.2rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      opacity: 0.72;
+    }
+
+    .tab-shortcut {
+      font-size: 0.82rem;
+      opacity: 0.5;
     }
 
     .tool-panel {
@@ -189,7 +206,7 @@
       grid-column: span 12;
       background: var(--panel-strong);
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 0;
       padding: 18px;
     }
 
@@ -233,7 +250,7 @@
     textarea {
       padding: 11px 12px;
       border: 1px solid rgba(0, 0, 0, 0.16);
-      border-radius: 12px;
+      border-radius: 0;
       background: #fff;
     }
 
@@ -241,7 +258,7 @@
       height: 48px;
       padding: 0;
       border: 1px solid rgba(0, 0, 0, 0.16);
-      border-radius: 12px;
+      border-radius: 0;
       background: #fff;
     }
 
@@ -255,7 +272,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      border-radius: 999px;
+      border-radius: 0;
       border: 1px solid var(--accent);
       background: var(--accent);
       color: var(--bg);
@@ -299,7 +316,7 @@
 
     .pill,
     .swatch {
-      border-radius: 999px;
+      border-radius: 0;
       background: var(--accent-soft);
       padding: 8px 12px;
       font-size: 0.9rem;
@@ -350,13 +367,13 @@
       background: rgba(17, 17, 17, 0.72);
       color: #fff;
       font-size: 0.72rem;
-      border-radius: 999px;
+      border-radius: 0;
       padding: 4px 8px;
     }
 
     .color-preview {
       min-height: 240px;
-      border-radius: 18px;
+      border-radius: 0;
       border: 1px solid var(--border);
       background: #fff;
       overflow: hidden;
@@ -463,7 +480,7 @@
       background: #fff;
       color: var(--text);
       padding: 8px 12px;
-      border-radius: 999px;
+      border-radius: 0;
       cursor: pointer;
     }
 
@@ -548,7 +565,7 @@
     .empty-state {
       padding: 28px;
       border: 1px dashed rgba(0,0,0,.18);
-      border-radius: 18px;
+      border-radius: 0;
       color: var(--muted);
       text-align: center;
     }
@@ -575,6 +592,18 @@
         position: static;
       }
 
+      .tab-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .tab-button {
+        grid-template-columns: auto 1fr;
+      }
+
+      .tab-shortcut {
+        display: none;
+      }
+
       .card.half,
       .card.third {
         grid-column: span 12;
@@ -584,6 +613,7 @@
     @media (max-width: 640px) {
       .shell { width: min(100% - 20px, 1200px); }
       .hero-copy, .hero-meta, .tool-panel, .tab-list { padding: 18px; }
+      .tab-actions { grid-template-columns: 1fr; }
       .row { grid-template-columns: 1fr; }
     }
   </style>
@@ -592,16 +622,16 @@
   <main class="shell">
     <section class="hero">
       <div class="panel hero-copy">
-        <div class="eyebrow">Browser only / local processing</div>
-        <h1>Web制作でよく使う小道具を<br>1ページにまとめた /webtools</h1>
-        <p class="lead">画像変換・色の検討・影の試作・画像からのスポイトを、すべてブラウザ内だけで完結する構成で実装しました。サーバー送信や外部APIは使わず、将来の追加ツールも差し込みやすいタブ型の構造です。</p>
+        <div class="eyebrow">/webtools</div>
+        <h1>Web制作で使うツール集</h1>
+        <p class="lead">画像、色、CSS、メタタグ周りをブラウザだけでまとめて扱えます。</p>
       </div>
       <aside class="panel hero-meta">
-        <h2>実装方針</h2>
+        <h2>特徴</h2>
         <ul class="meta-list">
-          <li><strong>拡張しやすい構造</strong>ツール定義を配列で管理し、タブや説明を一括生成。</li>
-          <li><strong>完全ローカル処理</strong>Canvas / File API / CSSだけで完結。</li>
-          <li><strong>実務寄りUI</strong>コピー、プレビュー、数値調整、プリセットを同居。</li>
+          <li><strong>ローカル完結</strong>アップロードしたデータはブラウザ内で処理。</li>
+          <li><strong>すぐ使える</strong>コピペ用の出力をその場で確認。</li>
+          <li><strong>まとめて切替</strong>左のタブから必要なツールへすぐ移動。</li>
         </ul>
       </aside>
     </section>
@@ -609,7 +639,7 @@
     <section class="tool-shell">
       <nav class="panel tab-list" aria-label="Web tools tabs">
         <h2>Tools</h2>
-        <p class="muted" style="margin-top:8px;">追加実装しやすいレジストリ式タブUI。</p>
+        <p class="muted" style="margin-top:8px;">使いたい項目を選んで切り替え。</p>
         <div id="tabActions" class="tab-actions" role="tablist" aria-orientation="vertical"></div>
       </nav>
 
@@ -761,17 +791,39 @@
 
     function renderTabs() {
       els.tabActions.innerHTML = '';
-      toolRegistry.forEach((tool) => {
+      toolRegistry.forEach((tool, index) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'tab-button';
         button.setAttribute('role', 'tab');
         button.setAttribute('aria-selected', 'false');
+        button.setAttribute('aria-controls', 'toolContent');
+        button.dataset.toolId = tool.id;
+        button.dataset.index = String(index);
         button.id = `tab-${tool.id}`;
-        button.innerHTML = `<strong>${tool.label}</strong><span>${tool.summary}</span>`;
+        button.innerHTML = `<span class="tab-index">${String(index + 1).padStart(2, '0')}</span><span><strong>${tool.label}</strong><span>${tool.summary}</span></span><span class="tab-shortcut">↵</span>`;
         button.addEventListener('click', () => activateTool(tool.id));
+        button.addEventListener('keydown', handleTabKeydown);
         els.tabActions.appendChild(button);
       });
+    }
+
+    function handleTabKeydown(event) {
+      const buttons = [...els.tabActions.querySelectorAll('.tab-button')];
+      const currentIndex = buttons.indexOf(event.currentTarget);
+      if (currentIndex === -1) return;
+
+      let nextIndex = null;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % buttons.length;
+      if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+      if (event.key === 'Home') nextIndex = 0;
+      if (event.key === 'End') nextIndex = buttons.length - 1;
+
+      if (nextIndex !== null) {
+        event.preventDefault();
+        buttons[nextIndex].focus();
+        activateTool(buttons[nextIndex].dataset.toolId);
+      }
     }
 
     function activateTool(id) {
