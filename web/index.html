@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Tools / KOTOCA</title>
+  <style>
+    :root {
+      --bg: #f4eecd;
+      --panel: #faf7e8;
+      --panel-strong: #fffaf0;
+      --text: #111;
+      --muted: #544f43;
+      --border: rgba(0, 0, 0, 0.12);
+      --accent: #111;
+      --accent-soft: #e7ddbb;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.72), transparent 28%),
+        linear-gradient(180deg, #f7f0d8 0%, var(--bg) 100%);
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      background: rgba(250, 247, 232, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-copy, .hero-meta {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      line-height: 1.04;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 60ch;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .meta-list {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+    }
+
+    .meta-list strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .tool-shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .tab-list {
+      padding: 16px;
+      position: sticky;
+      top: 16px;
+    }
+
+    .tab-list h2,
+    .tool-panel h2,
+    .tool-panel h3 {
+      margin: 0;
+    }
+
+    .tab-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .tab-button {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .tab-button:hover,
+    .tab-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(0, 0, 0, 0.28);
+      outline: none;
+    }
+
+    .tab-button.active {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .tab-button strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1rem;
+    }
+
+    .tab-button span {
+      font-size: 0.9rem;
+      line-height: 1.45;
+      opacity: 0.88;
+    }
+
+    .tool-panel {
+      padding: 24px;
+    }
+
+    .tool-header {
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tool-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 68ch;
+    }
+
+    .tool-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .card {
+      grid-column: span 12;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .card.half { grid-column: span 6; }
+    .card.third { grid-column: span 4; }
+
+    label {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .inline-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input,
+    button,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="color"],
+    input[type="range"],
+    input[type="file"],
+    select,
+    textarea {
+      width: 100%;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      padding: 11px 12px;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    input[type="color"] {
+      height: 48px;
+      padding: 0;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+
+    button,
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: var(--bg);
+      padding: 10px 16px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    button.secondary,
+    .download-link.secondary {
+      background: transparent;
+      color: var(--text);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .pill-list,
+    .download-list,
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill,
+    .swatch {
+      border-radius: 999px;
+      background: var(--accent-soft);
+      padding: 8px 12px;
+      font-size: 0.9rem;
+    }
+
+    .download-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 220px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .thumb {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #fefcf4, #ebe0b2);
+      aspect-ratio: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background-image: linear-gradient(45deg, rgba(0,0,0,.04) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.04) 75%), linear-gradient(45deg, rgba(0,0,0,.04) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.04) 75%);
+      background-position: 0 0, 10px 10px;
+      background-size: 20px 20px;
+    }
+
+    .thumb span {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      background: rgba(17, 17, 17, 0.72);
+      color: #fff;
+      font-size: 0.72rem;
+      border-radius: 999px;
+      padding: 4px 8px;
+    }
+
+    .color-preview {
+      min-height: 240px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: #fff;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+
+    .color-preview::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.35), transparent 45%);
+      pointer-events: none;
+    }
+
+    .color-swatch-large {
+      width: min(240px, 68%);
+      aspect-ratio: 1;
+      border-radius: 24px;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 16px 30px rgba(0,0,0,.08);
+    }
+
+    .wheel {
+      width: 100%;
+      max-width: 380px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      position: relative;
+      margin: 0 auto;
+      background: conic-gradient(from 0deg, #ff4d4d, #ffd84d, #6dff6d, #4dffff, #4d6dff, #ff4dff, #ff4d4d);
+      overflow: hidden;
+    }
+
+    .wheel::after {
+      content: "";
+      position: absolute;
+      inset: 22%;
+      border-radius: 50%;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+    }
+
+    .wheel-marker {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      margin: -9px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.22);
+      z-index: 1;
+    }
+
+    .formula {
+      background: #1d1b18;
+      color: #fbf7eb;
+      border-radius: 16px;
+      padding: 16px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }
+
+    .shadow-stage {
+      min-height: 320px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background-image:
+        linear-gradient(45deg, rgba(0,0,0,.04) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(0,0,0,.04) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(0,0,0,.04) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(0,0,0,.04) 75%);
+      background-size: 28px 28px;
+      background-position: 0 0, 0 14px, 14px -14px, -14px 0;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+    }
+
+    .shadow-box {
+      width: min(260px, 100%);
+      aspect-ratio: 1.2;
+      border-radius: 28px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .shadow-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .preset {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #fff 0%, #f0ead5 100%);
+      max-height: 540px;
+      object-fit: contain;
+    }
+
+    .loupe {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #fff;
+      image-rendering: pixelated;
+    }
+
+
+    .json-tree {
+      display: grid;
+      gap: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+    }
+
+    .json-node {
+      border-left: 2px solid rgba(0,0,0,.08);
+      padding-left: 12px;
+    }
+
+    .json-key {
+      font-weight: 700;
+      color: #5c3d00;
+    }
+
+    .json-meta {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .match-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .match-item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .preview-card {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(0,0,0,.08);
+    }
+
+    .ogp-visual {
+      aspect-ratio: 1.91 / 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 10px;
+      color: #fff;
+      background: linear-gradient(135deg, #1f3c88, #39a0ed 58%, #7ef7c9);
+    }
+
+    .ogp-url {
+      font-size: 0.85rem;
+      opacity: 0.86;
+      word-break: break-all;
+    }
+    .empty-state {
+      padding: 28px;
+      border: 1px dashed rgba(0,0,0,.18);
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 960px) {
+      .hero,
+      .tool-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .tab-list {
+        position: static;
+      }
+
+      .card.half,
+      .card.third {
+        grid-column: span 12;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 20px, 1200px); }
+      .hero-copy, .hero-meta, .tool-panel, .tab-list { padding: 18px; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="panel hero-copy">
+        <div class="eyebrow">Browser only / local processing</div>
+        <h1>Web制作でよく使う小道具を<br>1ページにまとめた /webtools</h1>
+        <p class="lead">画像変換・色の検討・影の試作・画像からのスポイトを、すべてブラウザ内だけで完結する構成で実装しました。サーバー送信や外部APIは使わず、将来の追加ツールも差し込みやすいタブ型の構造です。</p>
+      </div>
+      <aside class="panel hero-meta">
+        <h2>実装方針</h2>
+        <ul class="meta-list">
+          <li><strong>拡張しやすい構造</strong>ツール定義を配列で管理し、タブや説明を一括生成。</li>
+          <li><strong>完全ローカル処理</strong>Canvas / File API / CSSだけで完結。</li>
+          <li><strong>実務寄りUI</strong>コピー、プレビュー、数値調整、プリセットを同居。</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="tool-shell">
+      <nav class="panel tab-list" aria-label="Web tools tabs">
+        <h2>Tools</h2>
+        <p class="muted" style="margin-top:8px;">追加実装しやすいレジストリ式タブUI。</p>
+        <div id="tabActions" class="tab-actions" role="tablist" aria-orientation="vertical"></div>
+      </nav>
+
+      <section class="panel tool-panel">
+        <div class="tool-header">
+          <div>
+            <div class="eyebrow" id="toolEyebrow">Tool</div>
+            <h2 id="toolTitle" style="margin-top:10px;"></h2>
+            <p id="toolDescription"></p>
+          </div>
+          <a href="../index.html" class="download-link secondary">← TOPへ戻る</a>
+        </div>
+        <div id="toolContent"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      activeToolId: null,
+      converterResults: [],
+      pickerHex: '#ff7a18',
+      shadow: {
+        x: 0,
+        y: 18,
+        blur: 40,
+        spread: -8,
+        opacity: 0.22,
+        color: '#000000',
+        inset: false,
+        boxColor: '#ffffff',
+        stageColor: '#f2ead1',
+        radius: 28,
+      },
+      imagePicker: {
+        image: null,
+        scale: 1,
+        picked: null,
+      },
+      favicon: {
+        siteName: 'My Web App',
+        basePath: '/favicon',
+        themeColor: '#111111',
+        backgroundColor: '#f4eecd',
+        maskIconColor: '#111111',
+        manifestPath: '/site.webmanifest',
+        includeMaskIcon: true,
+        includeMsTags: true,
+      },
+      regex: {
+        pattern: '(https?):\/\/[^\s]+',
+        flags: 'gi',
+        sample: 'Docs: https://example.com/docs\nBlog: http://blog.example.com/post',
+        replacement: '<a href="$&">$&</a>',
+      },
+      jsonTool: {
+        input: `{
+  "name": "KOTOCA",
+  "tools": ["webp", "color", "shadow"],
+  "published": true,
+  "stats": {
+    "count": 3,
+    "likes": 42
+  }
+}`,
+      },
+      ogp: {
+        title: 'Web Tools / KOTOCA',
+        description: 'ブラウザだけで使えるWeb制作向けツール集。画像変換、色調整、shadow確認、favicon生成などを1ページに集約。',
+        url: 'https://example.com/web/',
+        image: 'https://example.com/ogp.png',
+        siteName: 'KOTOCA Tools',
+        type: 'website',
+        twitterCard: 'summary_large_image',
+      },
+    };
+
+    const toolRegistry = [
+      {
+        id: 'webp',
+        label: '画像→WebP',
+        summary: '複数画像をまとめてWebPへ変換',
+        description: 'PNG / JPEG / GIF / BMP / WebP などをまとめて読み込み、品質を調整しながらWebPへローカル変換します。変換結果は個別にプレビューして保存できます。',
+        render: renderWebpTool,
+      },
+      {
+        id: 'color',
+        label: 'カラーピッカー',
+        summary: 'HEX / RGB / HSL と類似色色相環',
+        description: 'HEX入力・RGB/HSL表示・補色/類似色/トライアドをまとめて確認できる色検討用パネルです。色相環には選択色の位置も表示します。',
+        render: renderColorTool,
+      },
+      {
+        id: 'shadow',
+        label: 'box-shadow',
+        summary: 'CSSの影を視覚的に調整',
+        description: 'offset / blur / spread / opacity / inset / border-radius を触りながら、その場でCSSを生成するbox-shadowテスターです。プリセットからの出発もできます。',
+        render: renderShadowTool,
+      },
+      {
+        id: 'image-picker',
+        label: '画像スポイト',
+        summary: '画像上の色を抽出して確認',
+        description: '読み込んだ画像をCanvasに描画し、クリックまたはポインター移動でピクセル色を取得します。拡大ルーペ、座標、HEX/RGB/HSL表示付きです。',
+        render: renderImagePickerTool,
+      },
+      {
+        id: 'favicon',
+        label: 'faviconタグ',
+        summary: 'favicon / manifest タグを生成',
+        description: 'favicon設置時に忘れやすいlink / metaタグを、URLや色を入力してそのままコピペできる形で生成します。favicon.ico / SVG / apple-touch-icon / manifest / pinned tab までまとめて出力します。',
+        render: renderFaviconTool,
+      },
+      {
+        id: 'regex',
+        label: '正規表現Maker',
+        summary: 'RegExpを試しながら生成',
+        description: 'パターン・flags・サンプル文字列・置換文字列を入力し、マッチ結果や置換結果をその場で確認できる正規表現テスターです。JavaScript用コードもコピペできます。',
+        render: renderRegexTool,
+      },
+      {
+        id: 'json',
+        label: 'JSON解析',
+        summary: 'JSONを読んで構造を表示',
+        description: 'JSON文字列を解析して、型・配列長・主要キー・ネスト構造を見やすく表示します。整形済みJSONのコピーもできます。',
+        render: renderJsonTool,
+      },
+      {
+        id: 'ogp',
+        label: 'OGPMaker',
+        summary: 'OGP / Twitter Cardタグを生成',
+        description: 'タイトル、説明、URL、画像URLなどを入れると、Open Graph と Twitter Card のmetaタグをまとめて生成します。SNSカード風プレビュー付きです。',
+        render: renderOgpTool,
+      },
+    ];
+
+    const els = {
+      tabActions: document.getElementById('tabActions'),
+      toolEyebrow: document.getElementById('toolEyebrow'),
+      toolTitle: document.getElementById('toolTitle'),
+      toolDescription: document.getElementById('toolDescription'),
+      toolContent: document.getElementById('toolContent'),
+    };
+
+    function initialize() {
+      renderTabs();
+      activateTool(toolRegistry[0].id);
+    }
+
+    function renderTabs() {
+      els.tabActions.innerHTML = '';
+      toolRegistry.forEach((tool) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'tab-button';
+        button.setAttribute('role', 'tab');
+        button.setAttribute('aria-selected', 'false');
+        button.id = `tab-${tool.id}`;
+        button.innerHTML = `<strong>${tool.label}</strong><span>${tool.summary}</span>`;
+        button.addEventListener('click', () => activateTool(tool.id));
+        els.tabActions.appendChild(button);
+      });
+    }
+
+    function activateTool(id) {
+      state.activeToolId = id;
+      const tool = toolRegistry.find((entry) => entry.id === id);
+      if (!tool) return;
+
+      [...els.tabActions.querySelectorAll('.tab-button')].forEach((button) => {
+        const active = button.id === `tab-${id}`;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+      });
+
+      els.toolEyebrow.textContent = tool.label;
+      els.toolTitle.textContent = tool.summary;
+      els.toolDescription.textContent = tool.description;
+      tool.render();
+    }
+
+    function setContent(html) {
+      els.toolContent.innerHTML = html;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function clamp(num, min, max) {
+      return Math.min(max, Math.max(min, num));
+    }
+
+    function copyText(text) {
+      navigator.clipboard?.writeText(text).catch(() => {});
+    }
+
+    function componentToHex(value) {
+      return value.toString(16).padStart(2, '0');
+    }
+
+    function rgbToHex(r, g, b) {
+      return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`;
+    }
+
+    function hexToRgb(hex) {
+      const normalized = hex.replace('#', '');
+      const safe = normalized.length === 3
+        ? normalized.split('').map((char) => char + char).join('')
+        : normalized.padEnd(6, '0').slice(0, 6);
+      const value = Number.parseInt(safe, 16);
+      return {
+        r: (value >> 16) & 255,
+        g: (value >> 8) & 255,
+        b: value & 255,
+      };
+    }
+
+    function rgbToHsl(r, g, b) {
+      const red = r / 255;
+      const green = g / 255;
+      const blue = b / 255;
+      const max = Math.max(red, green, blue);
+      const min = Math.min(red, green, blue);
+      let h;
+      let s;
+      const l = (max + min) / 2;
+
+      if (max === min) {
+        h = 0;
+        s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case red:
+            h = (green - blue) / d + (green < blue ? 6 : 0);
+            break;
+          case green:
+            h = (blue - red) / d + 2;
+            break;
+          default:
+            h = (red - green) / d + 4;
+        }
+        h /= 6;
+      }
+
+      return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        l: Math.round(l * 100),
+      };
+    }
+
+    function hslToCss(h, s, l) {
+      return `hsl(${Math.round(h)} ${Math.round(s)}% ${Math.round(l)}%)`;
+    }
+
+    function generateColorFamilies(hex) {
+      const { r, g, b } = hexToRgb(hex);
+      const hsl = rgbToHsl(r, g, b);
+      const hue = hsl.h;
+      const sat = clamp(hsl.s, 28, 92);
+      const light = clamp(hsl.l, 20, 78);
+      const around = [-30, -18, -8, 0, 8, 18, 30].map((offset) => ({
+        label: `${offset > 0 ? '+' : ''}${offset}°`,
+        color: hslToCss((hue + offset + 360) % 360, sat, light),
+      }));
+      const harmony = [
+        { label: '補色', color: hslToCss((hue + 180) % 360, sat, light) },
+        { label: 'トライアド A', color: hslToCss((hue + 120) % 360, sat, light) },
+        { label: 'トライアド B', color: hslToCss((hue + 240) % 360, sat, light) },
+        { label: '暗め', color: hslToCss(hue, sat, clamp(light - 18, 8, 92)) },
+        { label: '明るめ', color: hslToCss(hue, sat, clamp(light + 18, 8, 92)) },
+      ];
+      return { rgb: { r, g, b }, hsl, around, harmony };
+    }
+
+    function renderSwatchList(items) {
+      return items.map((item) => {
+        const rgb = item.color.startsWith('#') ? hexToRgb(item.color) : null;
+        const hex = rgb ? rgbToHex(rgb.r, rgb.g, rgb.b) : item.color;
+        return `
+          <button type="button" class="swatch" style="background:${item.color}; color:${pickTextColor(item.color)}; border:none; cursor:pointer;" data-color="${item.color}">
+            ${item.label}<br><small>${hex}</small>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function pickTextColor(color) {
+      let rgb;
+      if (color.startsWith('#')) {
+        rgb = hexToRgb(color);
+      } else {
+        const probe = document.createElement('div');
+        probe.style.color = color;
+        document.body.appendChild(probe);
+        const resolved = getComputedStyle(probe).color;
+        document.body.removeChild(probe);
+        const [r, g, b] = resolved.match(/\d+/g).map(Number);
+        rgb = { r, g, b };
+      }
+      const luminance = (rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114) / 255;
+      return luminance > 0.62 ? '#111' : '#fff';
+    }
+
+    function renderWebpTool() {
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div>
+              <label for="webpFiles">画像ファイル</label>
+              <input id="webpFiles" type="file" accept="image/*" multiple>
+            </div>
+            <div>
+              <label class="inline-label" for="webpQuality"><span>品質</span><strong id="webpQualityValue">0.92</strong></label>
+              <input id="webpQuality" type="range" min="0.1" max="1" step="0.01" value="0.92">
+            </div>
+            <div class="row">
+              <button id="convertWebpButton" type="button">変換する</button>
+              <button id="clearWebpButton" type="button" class="secondary">結果をクリア</button>
+            </div>
+            <p class="muted">変換処理はすべてブラウザ内で実行されます。アニメーションGIFは先頭フレーム相当の静止画像として変換されます。</p>
+          </article>
+          <article class="card half stack">
+            <h3>使い方メモ</h3>
+            <div class="pill-list">
+              <span class="pill">複数選択対応</span>
+              <span class="pill">個別保存</span>
+              <span class="pill">サーバー送信なし</span>
+              <span class="pill">透過PNG対応</span>
+            </div>
+            <div class="empty-state">変換後はここにファイルごとのダウンロードカードが並びます。</div>
+          </article>
+          <article class="card stack">
+            <h3>変換プレビュー</h3>
+            <div id="webpPreview" class="preview-grid"></div>
+            <div id="webpDownloads" class="download-list"></div>
+          </article>
+        </div>
+      `);
+
+      const fileInput = document.getElementById('webpFiles');
+      const qualityInput = document.getElementById('webpQuality');
+      const qualityValue = document.getElementById('webpQualityValue');
+      const preview = document.getElementById('webpPreview');
+      const downloads = document.getElementById('webpDownloads');
+      const convertButton = document.getElementById('convertWebpButton');
+      const clearButton = document.getElementById('clearWebpButton');
+
+      qualityInput.addEventListener('input', () => {
+        qualityValue.textContent = Number(qualityInput.value).toFixed(2);
+      });
+
+      clearButton.addEventListener('click', () => {
+        state.converterResults.forEach((item) => URL.revokeObjectURL(item.url));
+        state.converterResults = [];
+        fileInput.value = '';
+        preview.innerHTML = '';
+        downloads.innerHTML = '';
+      });
+
+      convertButton.addEventListener('click', async () => {
+        const files = [...fileInput.files];
+        if (!files.length) {
+          alert('画像ファイルを選択してください。');
+          return;
+        }
+
+        convertButton.disabled = true;
+        convertButton.textContent = '変換中…';
+        state.converterResults.forEach((item) => URL.revokeObjectURL(item.url));
+        state.converterResults = [];
+
+        try {
+          for (const file of files) {
+            const result = await convertImageToWebp(file, Number(qualityInput.value));
+            state.converterResults.push(result);
+          }
+          renderWebpResults(preview, downloads);
+        } catch (error) {
+          console.error(error);
+          alert('変換に失敗した画像があります。ブラウザが対応していない形式の可能性があります。');
+        } finally {
+          convertButton.disabled = false;
+          convertButton.textContent = '変換する';
+        }
+      });
+    }
+
+    async function convertImageToWebp(file, quality) {
+      const image = await loadImageFromFile(file);
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth || image.width;
+      canvas.height = image.naturalHeight || image.height;
+      const ctx = canvas.getContext('2d', { alpha: true });
+      ctx.drawImage(image, 0, 0);
+
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((output) => {
+          if (output) resolve(output);
+          else reject(new Error('toBlob failed'));
+        }, 'image/webp', quality);
+      });
+
+      const url = URL.createObjectURL(blob);
+      return {
+        name: file.name.replace(/\.[^.]+$/, '') || 'image',
+        originalType: file.type || 'unknown',
+        originalSize: file.size,
+        convertedSize: blob.size,
+        width: canvas.width,
+        height: canvas.height,
+        url,
+      };
+    }
+
+    function renderWebpResults(preview, downloads) {
+      preview.innerHTML = state.converterResults.map((item) => `
+        <div class="thumb">
+          <img src="${item.url}" alt="${escapeHtml(item.name)} preview">
+          <span>${item.width}×${item.height}</span>
+        </div>
+      `).join('');
+
+      downloads.innerHTML = state.converterResults.map((item) => {
+        const ratio = item.originalSize > 0 ? ((1 - item.convertedSize / item.originalSize) * 100) : 0;
+        return `
+          <div class="download-item">
+            <strong>${escapeHtml(item.name)}.webp</strong>
+            <span class="muted">${formatBytes(item.originalSize)} → ${formatBytes(item.convertedSize)} / ${ratio >= 0 ? ratio.toFixed(1) + '%減' : Math.abs(ratio).toFixed(1) + '%増'}</span>
+            <a class="download-link" href="${item.url}" download="${escapeHtml(item.name)}.webp">ダウンロード</a>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadImageFromFile(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(image);
+        };
+        image.onerror = (error) => {
+          URL.revokeObjectURL(url);
+          reject(error);
+        };
+        image.src = url;
+      });
+    }
+
+    function formatBytes(bytes) {
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let value = bytes;
+      let unitIndex = 0;
+      while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex += 1;
+      }
+      return `${value.toFixed(value >= 100 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+    }
+
+    function renderColorTool() {
+      const family = generateColorFamilies(state.pickerHex);
+      const marker = getWheelMarkerPosition(family.hsl.h);
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div class="row">
+              <div>
+                <label for="colorInput">色を選ぶ</label>
+                <input id="colorInput" type="color" value="${state.pickerHex}">
+              </div>
+              <div>
+                <label for="hexInput">HEX</label>
+                <input id="hexInput" type="text" value="${state.pickerHex}" spellcheck="false">
+              </div>
+            </div>
+            <div class="row">
+              <div class="pill">RGB: ${family.rgb.r}, ${family.rgb.g}, ${family.rgb.b}</div>
+              <div class="pill">HSL: ${family.hsl.h}° ${family.hsl.s}% ${family.hsl.l}%</div>
+            </div>
+            <div class="color-preview" style="background: linear-gradient(135deg, ${state.pickerHex}, ${hslToCss(family.hsl.h, clamp(family.hsl.s, 10, 95), clamp(family.hsl.l + 24, 12, 94))});">
+              <div class="color-swatch-large" style="background:${state.pickerHex};"></div>
+            </div>
+            <div class="row">
+              <button id="copyHexButton" type="button">HEXをコピー</button>
+              <button id="copyRgbButton" type="button" class="secondary">RGBをコピー</button>
+            </div>
+          </article>
+          <article class="card half stack">
+            <h3>類似色色相環</h3>
+            <div class="wheel">
+              <div class="wheel-marker" style="left:${marker.x}%; top:${marker.y}%; background:${state.pickerHex};"></div>
+            </div>
+            <p class="muted">色相角 ${family.hsl.h}° の位置をマーカー表示。近い色は下のチップから再選択できます。</p>
+          </article>
+          <article class="card half stack">
+            <h3>近い色</h3>
+            <div class="swatches" id="aroundSwatches">${renderSwatchList(family.around)}</div>
+          </article>
+          <article class="card half stack">
+            <h3>ハーモニー</h3>
+            <div class="swatches" id="harmonySwatches">${renderSwatchList(family.harmony)}</div>
+          </article>
+        </div>
+      `);
+
+      const colorInput = document.getElementById('colorInput');
+      const hexInput = document.getElementById('hexInput');
+      const updateHex = (nextValue) => {
+        const normalized = normalizeHex(nextValue);
+        if (!normalized) return;
+        state.pickerHex = normalized;
+        renderColorTool();
+      };
+
+      colorInput.addEventListener('input', (event) => updateHex(event.target.value));
+      hexInput.addEventListener('change', (event) => {
+        const normalized = normalizeHex(event.target.value);
+        if (!normalized) {
+          hexInput.value = state.pickerHex;
+          return;
+        }
+        updateHex(normalized);
+      });
+      document.getElementById('copyHexButton').addEventListener('click', () => copyText(state.pickerHex));
+      document.getElementById('copyRgbButton').addEventListener('click', () => copyText(`rgb(${family.rgb.r}, ${family.rgb.g}, ${family.rgb.b})`));
+      attachSwatchButtons('aroundSwatches');
+      attachSwatchButtons('harmonySwatches');
+    }
+
+    function attachSwatchButtons(id) {
+      document.getElementById(id)?.querySelectorAll('[data-color]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const next = button.getAttribute('data-color');
+          const normalized = next.startsWith('#') ? normalizeHex(next) : cssColorToHex(next);
+          if (normalized) {
+            state.pickerHex = normalized;
+            renderColorTool();
+          }
+        });
+      });
+    }
+
+    function normalizeHex(value) {
+      const normalized = value.trim().replace(/^#?/, '#');
+      if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(normalized)) {
+        return null;
+      }
+      const { r, g, b } = hexToRgb(normalized);
+      return rgbToHex(r, g, b);
+    }
+
+    function cssColorToHex(value) {
+      const probe = document.createElement('div');
+      probe.style.color = value;
+      document.body.appendChild(probe);
+      const resolved = getComputedStyle(probe).color;
+      document.body.removeChild(probe);
+      const match = resolved.match(/\d+/g);
+      if (!match) return null;
+      const [r, g, b] = match.map(Number);
+      return rgbToHex(r, g, b);
+    }
+
+    function getWheelMarkerPosition(hue) {
+      const angle = ((hue - 90) * Math.PI) / 180;
+      const radius = 39;
+      return {
+        x: 50 + Math.cos(angle) * radius,
+        y: 50 + Math.sin(angle) * radius,
+      };
+    }
+
+    function renderShadowTool() {
+      const shadowCss = buildShadowCss();
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div class="row">
+              <div>
+                <label class="inline-label" for="shadowX"><span>水平距離</span><strong id="shadowXValue">${state.shadow.x}px</strong></label>
+                <input id="shadowX" type="range" min="-80" max="80" value="${state.shadow.x}">
+              </div>
+              <div>
+                <label class="inline-label" for="shadowY"><span>垂直距離</span><strong id="shadowYValue">${state.shadow.y}px</strong></label>
+                <input id="shadowY" type="range" min="-80" max="80" value="${state.shadow.y}">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label class="inline-label" for="shadowBlur"><span>ぼかし</span><strong id="shadowBlurValue">${state.shadow.blur}px</strong></label>
+                <input id="shadowBlur" type="range" min="0" max="120" value="${state.shadow.blur}">
+              </div>
+              <div>
+                <label class="inline-label" for="shadowSpread"><span>広がり</span><strong id="shadowSpreadValue">${state.shadow.spread}px</strong></label>
+                <input id="shadowSpread" type="range" min="-80" max="80" value="${state.shadow.spread}">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label class="inline-label" for="shadowOpacity"><span>不透明度</span><strong id="shadowOpacityValue">${state.shadow.opacity.toFixed(2)}</strong></label>
+                <input id="shadowOpacity" type="range" min="0" max="1" step="0.01" value="${state.shadow.opacity}">
+              </div>
+              <div>
+                <label class="inline-label" for="shadowRadius"><span>角丸</span><strong id="shadowRadiusValue">${state.shadow.radius}px</strong></label>
+                <input id="shadowRadius" type="range" min="0" max="80" value="${state.shadow.radius}">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="shadowColor">影の色</label>
+                <input id="shadowColor" type="color" value="${state.shadow.color}">
+              </div>
+              <div>
+                <label for="boxColor">カード色</label>
+                <input id="boxColor" type="color" value="${state.shadow.boxColor}">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="stageColor">背景色</label>
+                <input id="stageColor" type="color" value="${state.shadow.stageColor}">
+              </div>
+              <div style="display:flex; align-items:flex-end;">
+                <label style="display:flex; gap:10px; align-items:center; margin:0;">
+                  <input id="shadowInset" type="checkbox" ${state.shadow.inset ? 'checked' : ''} style="width:auto;">
+                  inset にする
+                </label>
+              </div>
+            </div>
+            <div class="shadow-presets">
+              <button class="preset" type="button" data-preset="card">Card</button>
+              <button class="preset" type="button" data-preset="soft">Soft</button>
+              <button class="preset" type="button" data-preset="float">Float</button>
+              <button class="preset" type="button" data-preset="inner">Inner</button>
+            </div>
+          </article>
+          <article class="card half stack">
+            <div class="shadow-stage" id="shadowStage" style="background-color:${state.shadow.stageColor};">
+              <div class="shadow-box" id="shadowBox" style="background:${state.shadow.boxColor}; border-radius:${state.shadow.radius}px; box-shadow:${shadowCss};">preview</div>
+            </div>
+            <button id="copyShadowButton" type="button">CSSをコピー</button>
+          </article>
+          <article class="card stack">
+            <h3>生成されたCSS</h3>
+            <pre class="formula" id="shadowCssOutput">box-shadow: ${shadowCss};
+border-radius: ${state.shadow.radius}px;
+background: ${state.shadow.boxColor};</pre>
+          </article>
+        </div>
+      `);
+
+      const inputs = {
+        shadowX: 'x', shadowY: 'y', shadowBlur: 'blur', shadowSpread: 'spread', shadowOpacity: 'opacity', shadowRadius: 'radius',
+      };
+      Object.entries(inputs).forEach(([id, key]) => {
+        document.getElementById(id).addEventListener('input', (event) => {
+          const value = key === 'opacity' ? Number(event.target.value) : Number.parseInt(event.target.value, 10);
+          state.shadow[key] = value;
+          renderShadowTool();
+        });
+      });
+      document.getElementById('shadowColor').addEventListener('input', (event) => { state.shadow.color = event.target.value; renderShadowTool(); });
+      document.getElementById('boxColor').addEventListener('input', (event) => { state.shadow.boxColor = event.target.value; renderShadowTool(); });
+      document.getElementById('stageColor').addEventListener('input', (event) => { state.shadow.stageColor = event.target.value; renderShadowTool(); });
+      document.getElementById('shadowInset').addEventListener('change', (event) => { state.shadow.inset = event.target.checked; renderShadowTool(); });
+      document.getElementById('copyShadowButton').addEventListener('click', () => copyText(`box-shadow: ${buildShadowCss()};`));
+      document.querySelectorAll('[data-preset]').forEach((button) => {
+        button.addEventListener('click', () => applyShadowPreset(button.dataset.preset));
+      });
+    }
+
+    function buildShadowCss() {
+      const { x, y, blur, spread, opacity, color, inset } = state.shadow;
+      const { r, g, b } = hexToRgb(color);
+      return `${inset ? 'inset ' : ''}${x}px ${y}px ${blur}px ${spread}px rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+
+    function applyShadowPreset(name) {
+      const presets = {
+        card: { x: 0, y: 16, blur: 40, spread: -10, opacity: 0.18, color: '#000000', inset: false, radius: 28, boxColor: '#ffffff', stageColor: '#f2ead1' },
+        soft: { x: 0, y: 10, blur: 24, spread: -8, opacity: 0.16, color: '#7c5cff', inset: false, radius: 32, boxColor: '#ffffff', stageColor: '#efe7ff' },
+        float: { x: 0, y: 24, blur: 50, spread: -12, opacity: 0.30, color: '#0f172a', inset: false, radius: 36, boxColor: '#ffffff', stageColor: '#e8eef7' },
+        inner: { x: 0, y: 8, blur: 18, spread: 0, opacity: 0.24, color: '#000000', inset: true, radius: 28, boxColor: '#fffdf6', stageColor: '#f2ead1' },
+      };
+      state.shadow = { ...state.shadow, ...presets[name] };
+      renderShadowTool();
+    }
+
+    function renderFaviconTool() {
+      const favicon = state.favicon;
+      const output = buildFaviconMarkup();
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div>
+              <label for="faviconBasePath">favicon配置ベースURL</label>
+              <input id="faviconBasePath" type="text" value="${escapeHtml(favicon.basePath)}" placeholder="/favicon">
+            </div>
+            <div>
+              <label for="manifestPath">manifest URL</label>
+              <input id="manifestPath" type="text" value="${escapeHtml(favicon.manifestPath)}" placeholder="/site.webmanifest">
+            </div>
+            <div>
+              <label for="faviconSiteName">サイト名</label>
+              <input id="faviconSiteName" type="text" value="${escapeHtml(favicon.siteName)}" placeholder="My Web App">
+            </div>
+            <div class="row">
+              <div>
+                <label for="themeColorInput">theme-color</label>
+                <input id="themeColorInput" type="color" value="${favicon.themeColor}">
+              </div>
+              <div>
+                <label for="backgroundColorInput">msapplication-TileColor</label>
+                <input id="backgroundColorInput" type="color" value="${favicon.backgroundColor}">
+              </div>
+            </div>
+            <div>
+              <label for="maskIconColorInput">Safari pinned tab 色</label>
+              <input id="maskIconColorInput" type="color" value="${favicon.maskIconColor}">
+            </div>
+            <div class="row">
+              <label style="display:flex; gap:10px; align-items:center; margin:0;">
+                <input id="includeMaskIcon" type="checkbox" style="width:auto;" ${favicon.includeMaskIcon ? 'checked' : ''}>
+                mask-icon を含める
+              </label>
+              <label style="display:flex; gap:10px; align-items:center; margin:0;">
+                <input id="includeMsTags" type="checkbox" style="width:auto;" ${favicon.includeMsTags ? 'checked' : ''}>
+                Windows系metaを含める
+              </label>
+            </div>
+            <div class="pill-list">
+              <span class="pill">${escapeHtml(normalizeBasePath(favicon.basePath))}/favicon.ico</span>
+              <span class="pill">${escapeHtml(normalizeBasePath(favicon.basePath))}/favicon.svg</span>
+              <span class="pill">${escapeHtml(normalizeBasePath(favicon.basePath))}/apple-touch-icon.png</span>
+              <span class="pill">${escapeHtml(favicon.manifestPath)}</span>
+            </div>
+          </article>
+          <article class="card half stack">
+            <h3>すぐ使えるheadタグ</h3>
+            <p class="muted">よく忘れがちな favicon / apple-touch-icon / manifest / theme-color / pinned-tab をまとめて出します。</p>
+            <pre class="formula" id="faviconOutput">${escapeHtml(output)}</pre>
+            <div class="row">
+              <button id="copyFaviconButton" type="button">全部コピー</button>
+              <button id="copyManifestOnlyButton" type="button" class="secondary">manifest行だけコピー</button>
+            </div>
+          </article>
+          <article class="card stack">
+            <h3>補足</h3>
+            <div class="pill-list">
+              <span class="pill">ベースURLの末尾スラッシュは自動調整</span>
+              <span class="pill">SVG favicon 前提</span>
+              <span class="pill">Safari pinned tab 対応</span>
+              <span class="pill">コピペ用の最小セット</span>
+            </div>
+          </article>
+        </div>
+      `);
+
+      const bindText = (id, key) => {
+        document.getElementById(id).addEventListener('input', (event) => {
+          state.favicon[key] = event.target.value;
+          renderFaviconTool();
+        });
+      };
+      const bindToggle = (id, key) => {
+        document.getElementById(id).addEventListener('change', (event) => {
+          state.favicon[key] = event.target.checked;
+          renderFaviconTool();
+        });
+      };
+
+      bindText('faviconBasePath', 'basePath');
+      bindText('manifestPath', 'manifestPath');
+      bindText('faviconSiteName', 'siteName');
+      bindText('themeColorInput', 'themeColor');
+      bindText('backgroundColorInput', 'backgroundColor');
+      bindText('maskIconColorInput', 'maskIconColor');
+      bindToggle('includeMaskIcon', 'includeMaskIcon');
+      bindToggle('includeMsTags', 'includeMsTags');
+
+      document.getElementById('copyFaviconButton').addEventListener('click', () => copyText(output));
+      document.getElementById('copyManifestOnlyButton').addEventListener('click', () => copyText(`<link rel="manifest" href="${state.favicon.manifestPath.trim() || '/site.webmanifest'}">`));
+    }
+
+    function normalizeBasePath(value) {
+      const trimmed = (value || '').trim() || '/favicon';
+      return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+    }
+
+    function buildFaviconMarkup() {
+      const favicon = state.favicon;
+      const basePath = normalizeBasePath(favicon.basePath);
+      const manifestPath = favicon.manifestPath.trim() || '/site.webmanifest';
+      const siteName = favicon.siteName.trim() || 'My Web App';
+      const lines = [
+        `<link rel="icon" href="${basePath}/favicon.ico" sizes="any">`,
+        `<link rel="icon" type="image/svg+xml" href="${basePath}/favicon.svg">`,
+        `<link rel="apple-touch-icon" href="${basePath}/apple-touch-icon.png">`,
+        `<link rel="manifest" href="${manifestPath}">`,
+        `<meta name="application-name" content="${escapeHtml(siteName)}">`,
+        `<meta name="apple-mobile-web-app-title" content="${escapeHtml(siteName)}">`,
+        `<meta name="theme-color" content="${favicon.themeColor}">`,
+      ];
+      if (favicon.includeMaskIcon) {
+        lines.push(`<link rel="mask-icon" href="${basePath}/safari-pinned-tab.svg" color="${favicon.maskIconColor}">`);
+      }
+      if (favicon.includeMsTags) {
+        lines.push(`<meta name="msapplication-TileColor" content="${favicon.backgroundColor}">`);
+        lines.push(`<meta name="msapplication-config" content="${basePath}/browserconfig.xml">`);
+      }
+      return lines.join('\n');
+    }
+
+
+    function renderRegexTool() {
+      const regexState = state.regex;
+      const result = analyzeRegex(regexState.pattern, regexState.flags, regexState.sample, regexState.replacement);
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div>
+              <label for="regexPattern">パターン</label>
+              <input id="regexPattern" type="text" value="${escapeHtml(regexState.pattern)}" spellcheck="false">
+            </div>
+            <div class="row">
+              <div>
+                <label for="regexFlags">flags</label>
+                <input id="regexFlags" type="text" value="${escapeHtml(regexState.flags)}" spellcheck="false" placeholder="gim">
+              </div>
+              <div>
+                <label for="regexReplacement">置換文字列</label>
+                <input id="regexReplacement" type="text" value="${escapeHtml(regexState.replacement)}" spellcheck="false">
+              </div>
+            </div>
+            <div>
+              <label for="regexSample">テスト文字列</label>
+              <textarea id="regexSample" rows="10" spellcheck="false">${escapeHtml(regexState.sample)}</textarea>
+            </div>
+          </article>
+          <article class="card half stack">
+            <h3>結果</h3>
+            ${result.error ? `<div class="empty-state">${escapeHtml(result.error)}</div>` : `
+              <div class="pill-list">
+                <span class="pill">Matches: ${result.matches.length}</span>
+                <span class="pill">Flags: /${escapeHtml(regexState.flags)}/</span>
+              </div>
+              <pre class="formula">const regex = /${escapeHtml(regexState.pattern)}/${escapeHtml(regexState.flags)};
+const matches = [...sample.matchAll(regex)];</pre>
+              <button id="copyRegexCodeButton" type="button">JSコードをコピー</button>
+            `}
+          </article>
+          <article class="card half stack">
+            <h3>マッチ一覧</h3>
+            <div class="match-list">${renderRegexMatches(result)}</div>
+          </article>
+          <article class="card half stack">
+            <h3>置換プレビュー</h3>
+            <pre class="formula">${escapeHtml(result.replacedText)}</pre>
+          </article>
+        </div>
+      `);
+      ['regexPattern','regexFlags','regexReplacement','regexSample'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', (event) => {
+          const keyMap = {
+            regexPattern: 'pattern',
+            regexFlags: 'flags',
+            regexReplacement: 'replacement',
+            regexSample: 'sample',
+          };
+          state.regex[keyMap[id]] = event.target.value;
+          renderRegexTool();
+        });
+      });
+      document.getElementById('copyRegexCodeButton')?.addEventListener('click', () => {
+        copyText(`const regex = /${state.regex.pattern}/${state.regex.flags};
+const matches = [...sample.matchAll(regex)];
+const replaced = sample.replace(regex, ${JSON.stringify(state.regex.replacement)});`);
+      });
+    }
+
+    function analyzeRegex(pattern, flags, sample, replacement) {
+      try {
+        const regex = new RegExp(pattern, flags);
+        const matchSource = flags.includes('g') ? regex : new RegExp(pattern, `${flags}g`);
+        const matches = [...sample.matchAll(matchSource)].map((match) => ({
+          text: match[0],
+          index: match.index ?? 0,
+          groups: match.slice(1),
+        }));
+        return {
+          error: null,
+          matches,
+          replacedText: sample.replace(regex, replacement),
+        };
+      } catch (error) {
+        return {
+          error: error.message,
+          matches: [],
+          replacedText: sample,
+        };
+      }
+    }
+
+    function renderRegexMatches(result) {
+      if (result.error) {
+        return '<div class="empty-state">正規表現エラーのためマッチ一覧を表示できません。</div>';
+      }
+      if (!result.matches.length) {
+        return '<div class="empty-state">マッチはありません。</div>';
+      }
+      return result.matches.map((match, index) => `
+        <div class="match-item">
+          <strong>#${index + 1} ${escapeHtml(match.text)}</strong>
+          <div class="json-meta">index: ${match.index}</div>
+          ${match.groups.length ? `<div class="json-meta">groups: ${escapeHtml(JSON.stringify(match.groups))}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderJsonTool() {
+      const parsed = analyzeJsonInput(state.jsonTool.input);
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div>
+              <label for="jsonInput">JSON入力</label>
+              <textarea id="jsonInput" rows="18" spellcheck="false">${escapeHtml(state.jsonTool.input)}</textarea>
+            </div>
+          </article>
+          <article class="card half stack">
+            <h3>解析サマリー</h3>
+            ${parsed.error ? `<div class="empty-state">${escapeHtml(parsed.error)}</div>` : `
+              <div class="pill-list">
+                <span class="pill">root type: ${parsed.summary.type}</span>
+                <span class="pill">keys: ${parsed.summary.keyCount}</span>
+                <span class="pill">depth: ${parsed.summary.depth}</span>
+                <span class="pill">arrays: ${parsed.summary.arrayCount}</span>
+              </div>
+              <button id="copyFormattedJsonButton" type="button">整形JSONをコピー</button>
+            `}
+          </article>
+          <article class="card stack">
+            <h3>構造</h3>
+            <div class="json-tree">${parsed.error ? '<div class="empty-state">有効なJSONを入力してください。</div>' : renderJsonNode(parsed.value, '$', 0)}</div>
+          </article>
+        </div>
+      `);
+      document.getElementById('jsonInput').addEventListener('input', (event) => {
+        state.jsonTool.input = event.target.value;
+        renderJsonTool();
+      });
+      document.getElementById('copyFormattedJsonButton')?.addEventListener('click', () => {
+        copyText(JSON.stringify(parsed.value, null, 2));
+      });
+    }
+
+    function analyzeJsonInput(input) {
+      try {
+        const value = JSON.parse(input);
+        return {
+          error: null,
+          value,
+          summary: summarizeJson(value),
+        };
+      } catch (error) {
+        return {
+          error: error.message,
+          value: null,
+          summary: null,
+        };
+      }
+    }
+
+    function summarizeJson(value) {
+      let arrayCount = 0;
+      let keyCount = 0;
+      let depth = 0;
+      const walk = (node, level) => {
+        depth = Math.max(depth, level);
+        if (Array.isArray(node)) {
+          arrayCount += 1;
+          node.forEach((item) => walk(item, level + 1));
+        } else if (node && typeof node === 'object') {
+          const entries = Object.entries(node);
+          keyCount += entries.length;
+          entries.forEach(([, item]) => walk(item, level + 1));
+        }
+      };
+      walk(value, 1);
+      return {
+        type: Array.isArray(value) ? 'array' : typeof value,
+        keyCount,
+        depth,
+        arrayCount,
+      };
+    }
+
+    function renderJsonNode(value, label, level) {
+      const type = Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
+      if (type !== 'array' && type !== 'object') {
+        return `<div class="json-node"><span class="json-key">${escapeHtml(label)}</span>: ${escapeHtml(JSON.stringify(value))} <span class="json-meta">(${type})</span></div>`;
+      }
+      const entries = type === 'array'
+        ? value.map((item, index) => [String(index), item])
+        : Object.entries(value);
+      return `
+        <div class="json-node">
+          <div><span class="json-key">${escapeHtml(label)}</span> <span class="json-meta">(${type}${type === 'array' ? `:${entries.length}` : `:${entries.length} keys`})</span></div>
+          ${entries.length ? entries.map(([key, item]) => renderJsonNode(item, key, level + 1)).join('') : '<div class="json-node"><span class="json-meta">empty</span></div>'}
+        </div>
+      `;
+    }
+
+    function renderOgpTool() {
+      const ogp = state.ogp;
+      const markup = buildOgpMarkup();
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div>
+              <label for="ogpTitle">タイトル</label>
+              <input id="ogpTitle" type="text" value="${escapeHtml(ogp.title)}">
+            </div>
+            <div>
+              <label for="ogpDescription">説明文</label>
+              <textarea id="ogpDescription" rows="5">${escapeHtml(ogp.description)}</textarea>
+            </div>
+            <div class="row">
+              <div>
+                <label for="ogpUrl">URL</label>
+                <input id="ogpUrl" type="text" value="${escapeHtml(ogp.url)}">
+              </div>
+              <div>
+                <label for="ogpImage">画像URL</label>
+                <input id="ogpImage" type="text" value="${escapeHtml(ogp.image)}">
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="ogpSiteName">site_name</label>
+                <input id="ogpSiteName" type="text" value="${escapeHtml(ogp.siteName)}">
+              </div>
+              <div>
+                <label for="ogpType">og:type</label>
+                <select id="ogpType">
+                  ${['website','article','profile','product'].map((type) => `<option value="${type}" ${ogp.type === type ? 'selected' : ''}>${type}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="ogpTwitterCard">twitter:card</label>
+              <select id="ogpTwitterCard">
+                ${['summary_large_image','summary','app','player'].map((type) => `<option value="${type}" ${ogp.twitterCard === type ? 'selected' : ''}>${type}</option>`).join('')}
+              </select>
+            </div>
+          </article>
+          <article class="card half stack">
+            <h3>SNSカード風プレビュー</h3>
+            <div class="preview-card">
+              <div class="ogp-visual">
+                <div class="eyebrow">${escapeHtml(ogp.siteName || 'site_name')}</div>
+                <strong style="font-size:1.5rem; line-height:1.25;">${escapeHtml(ogp.title || 'Title')}</strong>
+                <div style="opacity:0.92;">${escapeHtml(ogp.description || 'Description')}</div>
+                <div class="ogp-url">${escapeHtml(ogp.url || 'https://example.com')}</div>
+              </div>
+            </div>
+            <button id="copyOgpButton" type="button">OGPタグをコピー</button>
+          </article>
+          <article class="card stack">
+            <h3>生成タグ</h3>
+            <pre class="formula">${escapeHtml(markup)}</pre>
+          </article>
+        </div>
+      `);
+      ['ogpTitle','ogpDescription','ogpUrl','ogpImage','ogpSiteName','ogpType','ogpTwitterCard'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', (event) => {
+          const keyMap = {
+            ogpTitle: 'title',
+            ogpDescription: 'description',
+            ogpUrl: 'url',
+            ogpImage: 'image',
+            ogpSiteName: 'siteName',
+            ogpType: 'type',
+            ogpTwitterCard: 'twitterCard',
+          };
+          state.ogp[keyMap[id]] = event.target.value;
+          renderOgpTool();
+        });
+      });
+      document.getElementById('copyOgpButton').addEventListener('click', () => copyText(markup));
+    }
+
+    function buildOgpMarkup() {
+      const ogp = state.ogp;
+      const lines = [
+        `<meta property="og:title" content="${escapeHtml(ogp.title)}">`,
+        `<meta property="og:description" content="${escapeHtml(ogp.description)}">`,
+        `<meta property="og:url" content="${escapeHtml(ogp.url)}">`,
+        `<meta property="og:image" content="${escapeHtml(ogp.image)}">`,
+        `<meta property="og:site_name" content="${escapeHtml(ogp.siteName)}">`,
+        `<meta property="og:type" content="${escapeHtml(ogp.type)}">`,
+        `<meta name="twitter:card" content="${escapeHtml(ogp.twitterCard)}">`,
+        `<meta name="twitter:title" content="${escapeHtml(ogp.title)}">`,
+        `<meta name="twitter:description" content="${escapeHtml(ogp.description)}">`,
+        `<meta name="twitter:image" content="${escapeHtml(ogp.image)}">`,
+      ];
+      return lines.join('\n');
+    }
+
+
+    function renderImagePickerTool() {
+      const picked = state.imagePicker.picked;
+      const details = picked ? pickedToMarkup(picked) : '<div class="empty-state">画像を読み込むと、ここに抽出色の詳細が表示されます。</div>';
+      setContent(`
+        <div class="tool-grid">
+          <article class="card half stack">
+            <div>
+              <label for="pickerImageInput">画像を読み込む</label>
+              <input id="pickerImageInput" type="file" accept="image/*">
+            </div>
+            <p class="muted">クリックで色を固定、ポインター移動でライブプレビューします。巨大画像も画面内に収まるサイズへ縮小表示します。</p>
+            <canvas id="pickerCanvas" width="900" height="540" aria-label="image color picker canvas"></canvas>
+          </article>
+          <article class="card half stack">
+            <h3>抽出結果</h3>
+            <div id="pickedDetails">${details}</div>
+            <div>
+              <label>拡大ルーペ</label>
+              <canvas id="loupeCanvas" class="loupe" width="160" height="160"></canvas>
+            </div>
+          </article>
+        </div>
+      `);
+
+      const input = document.getElementById('pickerImageInput');
+      const canvas = document.getElementById('pickerCanvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const loupeCanvas = document.getElementById('loupeCanvas');
+      const loupeCtx = loupeCanvas.getContext('2d', { willReadFrequently: true });
+
+      input.addEventListener('change', async (event) => {
+        const [file] = event.target.files;
+        if (!file) return;
+        const image = await loadImageFromFile(file);
+        state.imagePicker.image = image;
+        drawPickerCanvas(ctx, canvas, image);
+        state.imagePicker.picked = null;
+        renderImagePickerTool();
+      });
+
+      if (state.imagePicker.image) {
+        drawPickerCanvas(ctx, canvas, state.imagePicker.image);
+      } else {
+        drawEmptyCanvas(ctx, canvas, 'ここに画像プレビュー');
+      }
+      drawLoupePlaceholder(loupeCtx, loupeCanvas);
+
+      const handlePick = (event, lock = false) => {
+        if (!state.imagePicker.image) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = clamp(Math.floor((event.clientX - rect.left) * scaleX), 0, canvas.width - 1);
+        const y = clamp(Math.floor((event.clientY - rect.top) * scaleY), 0, canvas.height - 1);
+        const pixel = ctx.getImageData(x, y, 1, 1).data;
+        const pickedState = buildPickedState(pixel, x, y);
+        state.imagePicker.picked = pickedState;
+        renderPickedDetails(pickedState);
+        drawLoupe(ctx, loupeCtx, x, y);
+        if (lock) copyText(pickedState.hex);
+      };
+
+      canvas.addEventListener('pointermove', handlePick);
+      canvas.addEventListener('click', (event) => handlePick(event, true));
+    }
+
+    function drawPickerCanvas(ctx, canvas, image) {
+      const maxWidth = 900;
+      const maxHeight = 540;
+      const scale = Math.min(maxWidth / image.naturalWidth, maxHeight / image.naturalHeight, 1);
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(image, 0, 0, width, height);
+      state.imagePicker.scale = scale;
+    }
+
+    function drawEmptyCanvas(ctx, canvas, label) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f3efdf';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#7c7460';
+      ctx.font = '600 24px system-ui';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+    }
+
+    function drawLoupePlaceholder(ctx, canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#8a816b';
+      ctx.font = '600 14px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Pick a pixel', canvas.width / 2, canvas.height / 2);
+    }
+
+    function drawLoupe(sourceCtx, loupeCtx, x, y) {
+      const size = 12;
+      const zoom = 12;
+      const startX = clamp(x - Math.floor(size / 2), 0, sourceCtx.canvas.width - size);
+      const startY = clamp(y - Math.floor(size / 2), 0, sourceCtx.canvas.height - size);
+      const imageData = sourceCtx.getImageData(startX, startY, size, size);
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = size;
+      tempCanvas.height = size;
+      tempCanvas.getContext('2d').putImageData(imageData, 0, 0);
+      loupeCtx.imageSmoothingEnabled = false;
+      loupeCtx.clearRect(0, 0, loupeCtx.canvas.width, loupeCtx.canvas.height);
+      loupeCtx.drawImage(tempCanvas, 0, 0, size, size, 0, 0, size * zoom, size * zoom);
+      loupeCtx.strokeStyle = '#ffffff';
+      loupeCtx.lineWidth = 2;
+      loupeCtx.strokeRect(((size / 2) * zoom) - zoom / 2, ((size / 2) * zoom) - zoom / 2, zoom, zoom);
+      loupeCtx.strokeStyle = '#111';
+      loupeCtx.strokeRect(((size / 2) * zoom) - zoom / 2 + 2, ((size / 2) * zoom) - zoom / 2 + 2, zoom - 4, zoom - 4);
+    }
+
+    function buildPickedState(pixel, x, y) {
+      const [r, g, b, a] = pixel;
+      const alpha = Number((a / 255).toFixed(3));
+      const hex = rgbToHex(r, g, b);
+      const hsl = rgbToHsl(r, g, b);
+      return { x, y, r, g, b, a, alpha, hex, hsl };
+    }
+
+    function pickedToMarkup(picked) {
+      return `
+        <div class="stack">
+          <div class="color-preview" style="min-height:180px; background: linear-gradient(135deg, ${picked.hex}, ${hslToCss(picked.hsl.h, picked.hsl.s, clamp(picked.hsl.l + 16, 0, 100))});">
+            <div class="color-swatch-large" style="background:${picked.hex}; width:min(180px, 52%);"></div>
+          </div>
+          <div class="pill-list">
+            <span class="pill">座標: ${picked.x}, ${picked.y}</span>
+            <span class="pill">HEX: ${picked.hex}</span>
+            <span class="pill">RGB: ${picked.r}, ${picked.g}, ${picked.b}</span>
+            <span class="pill">HSL: ${picked.hsl.h}° ${picked.hsl.s}% ${picked.hsl.l}%</span>
+            <span class="pill">Alpha: ${picked.alpha}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPickedDetails(picked) {
+      const container = document.getElementById('pickedDetails');
+      if (!container) return;
+      container.innerHTML = pickedToMarkup(picked);
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
