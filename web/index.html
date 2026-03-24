@@ -1794,7 +1794,7 @@ const replaced = sample.replace(regex, ${JSON.stringify(state.regex.replacement)
               <label for="pickerImageInput">画像を読み込む</label>
               <input id="pickerImageInput" type="file" accept="image/*">
             </div>
-            <p class="muted">クリックで色を固定、ポインター移動でライブプレビューします。巨大画像も画面内に収まるサイズへ縮小表示します。</p>
+            <p class="muted">クリックで色を固定すると、その後ホバーしても抽出結果は変わりません。未選択時のみポインター移動でライブプレビューします。巨大画像も画面内に収まるサイズへ縮小表示します。</p>
             <canvas id="pickerCanvas" width="900" height="540" aria-label="image color picker canvas"></canvas>
           </article>
           <article class="card half stack">
@@ -1831,23 +1831,34 @@ const replaced = sample.replace(regex, ${JSON.stringify(state.regex.replacement)
       }
       drawLoupePlaceholder(loupeCtx, loupeCanvas);
 
-      const handlePick = (event, lock = false) => {
-        if (!state.imagePicker.image) return;
+      const samplePickedState = (event) => {
+        if (!state.imagePicker.image) return null;
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
         const x = clamp(Math.floor((event.clientX - rect.left) * scaleX), 0, canvas.width - 1);
         const y = clamp(Math.floor((event.clientY - rect.top) * scaleY), 0, canvas.height - 1);
         const pixel = ctx.getImageData(x, y, 1, 1).data;
-        const pickedState = buildPickedState(pixel, x, y);
-        state.imagePicker.picked = pickedState;
-        renderPickedDetails(pickedState);
-        drawLoupe(ctx, loupeCtx, x, y);
-        if (lock) copyText(pickedState.hex);
+        return buildPickedState(pixel, x, y);
       };
 
-      canvas.addEventListener('pointermove', handlePick);
-      canvas.addEventListener('click', (event) => handlePick(event, true));
+      canvas.addEventListener('pointermove', (event) => {
+        const hoveredState = samplePickedState(event);
+        if (!hoveredState) return;
+        drawLoupe(ctx, loupeCtx, hoveredState.x, hoveredState.y);
+        if (!state.imagePicker.picked) {
+          renderPickedDetails(hoveredState);
+        }
+      });
+
+      canvas.addEventListener('click', (event) => {
+        const pickedState = samplePickedState(event);
+        if (!pickedState) return;
+        state.imagePicker.picked = pickedState;
+        renderPickedDetails(pickedState);
+        drawLoupe(ctx, loupeCtx, pickedState.x, pickedState.y);
+        copyText(pickedState.hex);
+      });
     }
 
     function drawPickerCanvas(ctx, canvas, image) {
