@@ -57,6 +57,36 @@ button:hover{
     background:var(--accent);
 }
 </style>
+
+<style id="top-theme-override">
+:root{
+  --top-bg:#f4eecd;
+  --top-fg:#000;
+  --top-muted:#333;
+  --top-card:#faf7e8;
+}
+body{
+  background:var(--top-bg)!important;
+  color:var(--top-fg)!important;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif !important;
+}
+.card,.section,#output,#list,.container,#divarea,.input_emboard,input,textarea,button{
+  border-radius:0 !important;
+}
+.card,.section,#output,#list,.container,#divarea{
+  background:var(--top-card)!important;
+  border:1px solid rgba(0,0,0,0.08)!important;
+  box-shadow:none!important;
+}
+button,.project a,.links-list a{
+  background:var(--top-fg)!important;
+  color:var(--top-bg)!important;
+  border:2px solid var(--top-fg)!important;
+}
+button:hover,a:hover{ opacity:0.85; }
+h1,h2,h3{ letter-spacing:0.02em; }
+a{ color:var(--top-fg)!important; }
+</style>
 </head>
 <body>
 
