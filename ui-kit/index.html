@@ -18,6 +18,7 @@
         <ul class="ui-nav-list">
           <li><a class="ui-link" href="#typography">TYPOGRAPHY</a></li>
           <li><a class="ui-link" href="#components">COMPONENTS</a></li>
+          <li><a class="ui-link" href="#forms">FORMS</a></li>
           <li><a class="ui-link" href="#layout">LAYOUT</a></li>
         </ul>
       </nav>
@@ -69,6 +70,8 @@
           <div class="ui-actions" style="margin-top:8px;">
             <a href="#" class="ui-btn">.ui-btn</a>
             <a href="#" class="ui-btn ui-btn-primary">.ui-btn-primary</a>
+            <a href="#" class="ui-btn ui-btn-secondary">.ui-btn-secondary</a>
+            <a href="#" class="ui-btn ui-btn-ghost">.ui-btn-ghost</a>
           </div>
         </article>
 
@@ -84,6 +87,52 @@
             <li><a class="ui-link" href="#">Documentation</a></li>
           </ul>
         </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Badges</h3>
+          <div class="ui-actions" style="margin-top:8px;">
+            <span class="ui-badge">Default</span>
+            <span class="ui-badge ui-badge-success">Success</span>
+            <span class="ui-badge ui-badge-danger">Danger</span>
+          </div>
+        </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Alerts</h3>
+          <div class="ui-alert ui-alert-success">保存に成功しました。</div>
+          <div class="ui-alert ui-alert-warning">入力内容を確認してください。</div>
+          <div class="ui-alert ui-alert-danger">送信に失敗しました。</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="forms">
+      <h2 class="ui-title">Forms</h2>
+      <div class="ui-grid">
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Input / Select / Textarea</h3>
+          <div class="ui-form-row">
+            <label class="ui-label" for="name">名前</label>
+            <input class="ui-input" id="name" type="text" placeholder="山田 太郎">
+          </div>
+          <div class="ui-form-row">
+            <label class="ui-label" for="category">カテゴリ</label>
+            <select class="ui-select" id="category">
+              <option>Web</option>
+              <option>Tool</option>
+              <option>Utility</option>
+            </select>
+          </div>
+          <div class="ui-form-row" style="margin-bottom:0;">
+            <label class="ui-label" for="note">メモ</label>
+            <textarea class="ui-textarea" id="note" rows="3" placeholder="メモを入力"></textarea>
+          </div>
+        </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Check</h3>
+          <label class="ui-check"><input type="checkbox" checked> 通知を受け取る</label>
+        </article>
       </div>
     </section>
 
@@ -98,6 +147,30 @@
           <h3 class="ui-subtitle">.ui-grid</h3>
           <p class="ui-text-muted">240px 以上で自動折り返しのレスポンシブグリッドです。</p>
         </article>
+      </div>
+    </section>
+
+    <section id="data">
+      <h2 class="ui-title">Data display</h2>
+      <div class="ui-card">
+        <h3 class="ui-subtitle">Tabs + Table</h3>
+        <div class="ui-tabs" style="margin-bottom:10px;">
+          <span class="ui-tab is-active">All</span>
+          <span class="ui-tab">Open</span>
+          <span class="ui-tab">Closed</span>
+        </div>
+        <div class="ui-table-wrap">
+          <table class="ui-table">
+            <thead>
+              <tr><th>Tool</th><th>Status</th><th>Updated</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>UI Kit</td><td>Active</td><td>2026-04-02</td></tr>
+              <tr><td>Web Tools</td><td>Active</td><td>2026-03-20</td></tr>
+              <tr><td>Median Camera</td><td>Beta</td><td>2026-03-15</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 

@@ -8,6 +8,10 @@
   --muted: #333333;
   --card-bg: #faf7e8;
   --line: rgba(0, 0, 0, 0.08);
+  --surface: #fffdf4;
+  --success: #1f7a3f;
+  --danger: #b00020;
+  --warning: #8a5a00;
 }
 
 *{
@@ -144,9 +148,11 @@ a.ui-btn{
   display: inline-block;
   padding: 10px 16px;
   border: 2px solid var(--fg);
-  background: transparent;
+  background: var(--surface);
+  color: var(--fg);
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .ui-btn:hover{
@@ -156,6 +162,14 @@ a.ui-btn{
 .ui-btn-primary{
   background: var(--fg);
   color: var(--bg);
+}
+
+.ui-btn-secondary{
+  background: var(--card-bg);
+}
+
+.ui-btn-ghost{
+  background: transparent;
 }
 
 .ui-btn-block{
@@ -186,6 +200,135 @@ a.ui-btn{
 .ui-list .ui-link:hover,
 .ui-btn-primary:hover{
   background-color: #333333;
+  color: #f4eecd;
+}
+
+.ui-btn-secondary:hover{
+  background-color: #e7dfbc;
+}
+
+.ui-btn-ghost:hover{
+  background-color: rgba(0,0,0,0.06);
+}
+
+.ui-badge{
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--fg);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ui-badge-success{
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.ui-badge-danger{
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.ui-alert{
+  border: 1px solid var(--fg);
+  background: var(--surface);
+  padding: 12px 14px;
+}
+
+.ui-alert + .ui-alert{
+  margin-top: 10px;
+}
+
+.ui-alert-success{
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.ui-alert-warning{
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.ui-alert-danger{
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.ui-form-row{
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.ui-label{
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-input,
+.ui-select,
+.ui-textarea{
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+}
+
+.ui-input:focus,
+.ui-select:focus,
+.ui-textarea:focus{
+  outline: 2px solid rgba(0,0,0,0.25);
+  outline-offset: 1px;
+}
+
+.ui-check{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.ui-table-wrap{
+  overflow: auto;
+  border: 1px solid rgba(0,0,0,0.12);
+}
+
+.ui-table{
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+  background: #fff;
+}
+
+.ui-table th,
+.ui-table td{
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  font-size: 14px;
+}
+
+.ui-table th{
+  background: var(--card-bg);
+}
+
+.ui-tabs{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ui-tab{
+  padding: 8px 12px;
+  border: 1px solid var(--fg);
+  font-weight: 700;
+}
+
+.ui-tab.is-active{
+  background: var(--fg);
+  color: var(--bg);
 }
 
 @media (max-width: 820px){
