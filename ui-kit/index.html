@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UI Kit / TOOLS / KOTOCA</title>
+  <link rel="stylesheet" href="./ui-kit.css">
+</head>
+<body class="ui-body">
+
+  <header class="ui-header">
+    <div class="ui-container" style="display:flex;align-items:center;">
+      <div class="ui-brand">
+        <span class="ui-logo" aria-hidden="true"></span>
+        <span>TOOLS / KOTOCA UI KIT</span>
+      </div>
+      <nav class="ui-nav">
+        <ul class="ui-nav-list">
+          <li><a class="ui-link" href="#typography">TYPOGRAPHY</a></li>
+          <li><a class="ui-link" href="#components">COMPONENTS</a></li>
+          <li><a class="ui-link" href="#forms">FORMS</a></li>
+          <li><a class="ui-link" href="#layout">LAYOUT</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ui-container">
+    <section class="ui-hero">
+      <div class="ui-hero-main">
+        <p class="ui-catch">Top CSS ベース UI Kit</p>
+        <p class="ui-lead">
+          このページは、top の <code>style.css</code> を元にした再利用可能な
+          UI クラス群を確認するためのサンプルです。
+        </p>
+        <div class="ui-actions">
+          <a href="#components" class="ui-btn ui-btn-primary">コンポーネントを見る</a>
+          <a href="#usage" class="ui-btn">使い方を見る</a>
+        </div>
+      </div>
+      <aside class="ui-side">
+        <div class="ui-card">
+          <strong>外部読み込み用</strong>
+          <p class="ui-text-muted" style="margin-top:8px;font-size:14px;">
+            <code>&lt;link rel="stylesheet" href="/ui-kit/ui-kit.css"&gt;</code>
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <section id="typography">
+      <h2 class="ui-title">Typography</h2>
+      <div class="ui-grid">
+        <article class="ui-card">
+          <h3 class="ui-subtitle">.ui-catch</h3>
+          <p class="ui-catch">TOOLS / KOTOCA</p>
+        </article>
+        <article class="ui-card">
+          <h3 class="ui-subtitle">.ui-lead</h3>
+          <p class="ui-lead" style="margin-top:0;">補助説明用のテキスト。読みやすい行幅と色で表示されます。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="components">
+      <h2 class="ui-title">Components</h2>
+      <div class="ui-grid">
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Buttons</h3>
+          <div class="ui-actions" style="margin-top:8px;">
+            <a href="#" class="ui-btn">.ui-btn</a>
+            <a href="#" class="ui-btn ui-btn-primary">.ui-btn-primary</a>
+            <a href="#" class="ui-btn ui-btn-secondary">.ui-btn-secondary</a>
+            <a href="#" class="ui-btn ui-btn-ghost">.ui-btn-ghost</a>
+          </div>
+        </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Block Link Button</h3>
+          <a href="#" class="ui-btn ui-btn-primary ui-btn-block">.ui-btn-block</a>
+        </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">List Link</h3>
+          <ul class="ui-list">
+            <li><a class="ui-link" href="#">GitHub</a></li>
+            <li><a class="ui-link" href="#">Documentation</a></li>
+          </ul>
+        </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Badges</h3>
+          <div class="ui-actions" style="margin-top:8px;">
+            <span class="ui-badge">Default</span>
+            <span class="ui-badge ui-badge-success">Success</span>
+            <span class="ui-badge ui-badge-danger">Danger</span>
+          </div>
+        </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Alerts</h3>
+          <div class="ui-alert ui-alert-success">保存に成功しました。</div>
+          <div class="ui-alert ui-alert-warning">入力内容を確認してください。</div>
+          <div class="ui-alert ui-alert-danger">送信に失敗しました。</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="forms">
+      <h2 class="ui-title">Forms</h2>
+      <div class="ui-grid">
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Input / Select / Textarea</h3>
+          <div class="ui-form-row">
+            <label class="ui-label" for="name">名前</label>
+            <input class="ui-input" id="name" type="text" placeholder="山田 太郎">
+          </div>
+          <div class="ui-form-row">
+            <label class="ui-label" for="category">カテゴリ</label>
+            <select class="ui-select" id="category">
+              <option>Web</option>
+              <option>Tool</option>
+              <option>Utility</option>
+            </select>
+          </div>
+          <div class="ui-form-row" style="margin-bottom:0;">
+            <label class="ui-label" for="note">メモ</label>
+            <textarea class="ui-textarea" id="note" rows="3" placeholder="メモを入力"></textarea>
+          </div>
+        </article>
+
+        <article class="ui-card">
+          <h3 class="ui-subtitle">Check</h3>
+          <label class="ui-check"><input type="checkbox" checked> 通知を受け取る</label>
+        </article>
+      </div>
+    </section>
+
+    <section id="layout">
+      <h2 class="ui-title">Layout</h2>
+      <div class="ui-grid">
+        <article class="ui-card">
+          <h3 class="ui-subtitle">.ui-card</h3>
+          <p class="ui-text-muted">カード背景・余白・境界線のセットです。</p>
+        </article>
+        <article class="ui-card">
+          <h3 class="ui-subtitle">.ui-grid</h3>
+          <p class="ui-text-muted">240px 以上で自動折り返しのレスポンシブグリッドです。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="data">
+      <h2 class="ui-title">Data display</h2>
+      <div class="ui-card">
+        <h3 class="ui-subtitle">Tabs + Table</h3>
+        <div class="ui-tabs" style="margin-bottom:10px;">
+          <span class="ui-tab is-active">All</span>
+          <span class="ui-tab">Open</span>
+          <span class="ui-tab">Closed</span>
+        </div>
+        <div class="ui-table-wrap">
+          <table class="ui-table">
+            <thead>
+              <tr><th>Tool</th><th>Status</th><th>Updated</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>UI Kit</td><td>Active</td><td>2026-04-02</td></tr>
+              <tr><td>Web Tools</td><td>Active</td><td>2026-03-20</td></tr>
+              <tr><td>Median Camera</td><td>Beta</td><td>2026-03-15</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="usage">
+      <h2 class="ui-title">Usage</h2>
+      <div class="ui-card">
+        <p>以下を任意のHTMLで読み込んで利用できます。</p>
+        <pre style="margin-top:10px;overflow:auto;">&lt;link rel="stylesheet" href="/ui-kit/ui-kit.css"&gt;</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ui-footer">
+    <div class="ui-container">
+      <small>© TeamKOTOCA UI Kit Sample</small>
+    </div>
+  </footer>
+</body>
+</html>
