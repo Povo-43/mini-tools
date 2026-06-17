@@ -302,6 +302,20 @@
             display: none;
         }
 
+        /* 固定（パス）状態：リトライ時に正解を出しっぱなしにするスタイル */
+        .blank-box.passed-correct {
+            background-color: transparent !important;
+            border-bottom: 2px dashed #28a745;
+            cursor: default;
+        }
+        .blank-box.passed-correct .blank-text {
+            display: inline;
+            color: #28a745 !important;
+        }
+        .blank-box.passed-correct .blank-hint {
+            display: none;
+        }
+
         /* 3. 間違えていた（バツ）状態 */
         .blank-box.checked-wrong {
             background-color: #dc3545 !important;
@@ -386,6 +400,7 @@
                       プロンプトをコピーする
                     </button>
                     <button onclick="handleNewRender()">🟢 変換して表示する</button>
+                    <button style="background-color: #ffc107; color: #333;" onclick="resetOnlyFailedAndBlanks()">🔥 誤答・未解のみを穴埋めに戻す</button>
                     <button style="background-color: #6c757d;" onclick="resetAllBlanks()">🔄 全て未解答に戻す</button>
                 </div>
 
@@ -414,7 +429,7 @@
 [SECTION] Section 1
 I’ve always loved painting. During a spring break in high school, I visited Belgium for two weeks. I [spent my time|used time to do something (past tense)] painting on the streets. People who [passed by|walked past a place] seemed happy to see my work, [even though|although] I couldn’t understand their language.`;
 
-    let currentHistoryIndex = 0; // 現在開いている履歴のインデックス番号
+    let currentHistoryIndex = 0; 
 
     function togglePanel() {
         if (window.innerWidth >= 768) return;
@@ -465,16 +480,31 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         document.querySelectorAll('.blank-box').forEach(box => {
             box.className = 'blank-box';
         });
-        saveCurrentScores(); // 正誤状態を消して上書き保存
+        saveCurrentScores(); 
+    }
+
+    // 🔥 新機能：間違えた問題と未回答の問題だけを穴埋め状態に戻す
+    function resetOnlyFailedAndBlanks() {
+        document.querySelectorAll('.blank-box').forEach(box => {
+            // 合っていた問題（checked-correct）または、すでにパスされて表示中の問題（passed-correct）の場合
+            if (box.classList.contains('checked-correct') || box.classList.contains('passed-correct')) {
+                box.className = 'blank-box passed-correct'; // スタイルを「表示したまま固定」に変更
+            } else {
+                // 間違えた問題、または何も手をつけていない問題は初期化（穴埋めに戻す）
+                box.className = 'blank-box';
+            }
+        });
+        saveCurrentScores(); // 状態を上書き保存
     }
 
     function handleBoxClick(event, element) {
         if (event.target.tagName === 'BUTTON') return;
+        // すでに正解して固定（passed-correct）されている場合はクリックを無視
+        if (element.classList.contains('passed-correct')) return;
         if (element.classList.contains('checked-correct') || element.classList.contains('checked-wrong')) return;
         element.classList.toggle('revealed');
     }
 
-    // 🟢 マルバツを入力して即時上書き保存
     function setScore(event, btn, status) {
         event.stopPropagation();
         const box = btn.closest('.blank-box');
@@ -485,10 +515,9 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         } else if (status === 'wrong') {
             box.classList.add('checked-wrong');
         }
-        saveCurrentScores(); // 毎回やるたびに正誤データを上書き
+        saveCurrentScores(); 
     }
 
-    // 現在のプレビュー画面の⭕❌状態を集計して履歴に上書き
     function saveCurrentScores() {
         let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
         if (!history[currentHistoryIndex]) return;
@@ -501,29 +530,25 @@ I’ve always loved painting. During a spring break in high school, I visited Be
                 scores.push({ index: i, status: 'correct' });
             } else if (box.classList.contains('checked-wrong')) {
                 scores.push({ index: i, status: 'wrong' });
+            } else if (box.classList.contains('passed-correct')) {
+                scores.push({ index: i, status: 'passed' }); // 固定表示状態も保存
             }
         });
 
-        // 現在の履歴オブジェクトにscores配列を上書き
         history[currentHistoryIndex].scores = scores;
         localStorage.setItem('blank_viewer_history', JSON.stringify(history));
     }
 
-    // 「変換して表示する」ボタンが押された時の処理（新規登録）
     function handleNewRender() {
         const text = document.getElementById('textInput').value;
         if (!text.trim()) return;
 
         let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
-        
-        // すでに全く同じテキストが履歴にあるか探す
         let existingIndex = history.findIndex(item => item.text === text);
         
         if (existingIndex !== -1) {
-            // すでにある場合はそれを開く（正誤データを維持するため新しく作らない）
             currentHistoryIndex = existingIndex;
         } else {
-            // 新しいテキストなら先頭に追加
             let title = "無題のワークシート";
             const titleMatch = text.match(/\[TITLE\](.*)/);
             if (titleMatch && titleMatch[1]) title = titleMatch[1].trim();
@@ -538,7 +563,6 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         loadHistoryList();
     }
 
-    // 本文を描画し、保存されている正誤データを復元する
     function renderText() {
         const history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
         const currentItem = history[currentHistoryIndex];
@@ -586,13 +610,13 @@ I’ve always loved painting. During a spring break in high school, I visited Be
 
         viewer.innerHTML = htmlOutput;
 
-        // 保存されていた正誤（scores）があればここで反映する
         if (currentItem && currentItem.scores) {
             const boxes = document.querySelectorAll('.blank-box');
             currentItem.scores.forEach(score => {
                 if (boxes[score.index]) {
                     if (score.status === 'correct') boxes[score.index].classList.add('checked-correct');
                     if (score.status === 'wrong') boxes[score.index].classList.add('checked-wrong');
+                    if (score.status === 'passed') boxes[score.index].classList.add('passed-correct');
                 }
             });
         }
@@ -646,7 +670,6 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         loadHistoryList();
     }
 
-    // --- 📥 ファイルエクスポート (JSON形式で全データ書き出し) ---
     function exportAllDataToFile() {
         const allData = {
             settings: localStorage.getItem('blank_viewer_settings'),
@@ -661,7 +684,6 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         URL.revokeObjectURL(url);
     }
 
-    // --- 📤 ファイルインポート (JSONファイル読み込み) ---
     function importAllDataFromFile(input) {
         const file = input.files[0];
         if (!file) return;
@@ -688,7 +710,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             }
         };
         reader.readAsText(file);
-        input.value = ""; // 連続選択できるようにリセット
+        input.value = ""; 
     }
 
     window.onload = function() {
@@ -696,7 +718,6 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         
         let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
         if (history.length === 0) {
-            // 初期状態はデフォルトサンプルを履歴に突っ込んでおく
             history = [{ title: "Lesson 3 サンプル", text: defaultText, scores: [] }];
             localStorage.setItem('blank_viewer_history', JSON.stringify(history));
         }
