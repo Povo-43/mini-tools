@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI穴抜き問題ワークシート Viewer Pro+</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -414,6 +415,10 @@
                     <button style="background-color: #17a2b8; margin-top: 8px; font-size: 13px; padding: 8px;" onclick="exportAllDataToFile()">📥 全データをファイルに書き出す</button>
                     <label class="file-input-label" for="importFile">📤 ファイルから読み込む</label>
                     <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importAllDataFromFile(this)">
+                    
+                    <label style="display:block; margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;">☁️ Google Drive クラウド同期</label>
+                    <button style="background-color: #4285F4; margin-top: 8px; font-size: 13px; padding: 8px;" onclick="backupToGoogleDrive()">Backup to Google Drive</button>
+                    <button style="background-color: #34A853; margin-top: 8px; font-size: 13px; padding: 8px;" onclick="restoreFromGoogleDrive()">Restore from Google Drive</button>
                 </div>
             </div>
         </div>
@@ -424,6 +429,13 @@
 </div>
 
 <script>
+    // ⚙️ Google API 設定用定数 (ご自身のClient IDに書き換えてください)
+    const GOOGLE_CLIENT_ID = '573157414710-5b5l94mddp7ncm5959tgfu3kl329hp82.apps.googleusercontent.com';
+    const BACKUP_FILE_NAME = 'blank_viewer_drive_backup.json';
+    let googleAccessToken = null;
+    let googleTokenClient = null;
+    let pendingGoogleTask = null; // 認証後に実行するタスクを保持する変数
+
     const defaultText = `[TITLE] Lesson 3: Art for Shared Happiness
 
 [SECTION] Section 1
@@ -483,23 +495,19 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         saveCurrentScores(); 
     }
 
-    // 🔥 新機能：間違えた問題と未回答の問題だけを穴埋め状態に戻す
     function resetOnlyFailedAndBlanks() {
         document.querySelectorAll('.blank-box').forEach(box => {
-            // 合っていた問題（checked-correct）または、すでにパスされて表示中の問題（passed-correct）の場合
             if (box.classList.contains('checked-correct') || box.classList.contains('passed-correct')) {
-                box.className = 'blank-box passed-correct'; // スタイルを「表示したまま固定」に変更
+                box.className = 'blank-box passed-correct'; 
             } else {
-                // 間違えた問題、または何も手をつけていない問題は初期化（穴埋めに戻す）
                 box.className = 'blank-box';
             }
         });
-        saveCurrentScores(); // 状態を上書き保存
+        saveCurrentScores(); 
     }
 
     function handleBoxClick(event, element) {
         if (event.target.tagName === 'BUTTON') return;
-        // すでに正解して固定（passed-correct）されている場合はクリックを無視
         if (element.classList.contains('passed-correct')) return;
         if (element.classList.contains('checked-correct') || element.classList.contains('checked-wrong')) return;
         element.classList.toggle('revealed');
@@ -531,7 +539,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             } else if (box.classList.contains('checked-wrong')) {
                 scores.push({ index: i, status: 'wrong' });
             } else if (box.classList.contains('passed-correct')) {
-                scores.push({ index: i, status: 'passed' }); // 固定表示状態も保存
+                scores.push({ index: i, status: 'passed' }); 
             }
         });
 
@@ -690,28 +698,176 @@ I’ve always loved painting. During a spring break in high school, I visited Be
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                if (importedData.settings) localStorage.setItem('blank_viewer_settings', importedData.settings);
-                if (importedData.history) localStorage.setItem('blank_viewer_history', importedData.history);
-                
-                alert("データのインポートが完了しました！");
-                currentHistoryIndex = 0;
-                loadSettings();
-                updateStyle();
-                
-                const history = JSON.parse(importedData.history) || [];
-                if (history.length > 0) document.getElementById('textInput').value = history[0].text;
-                
-                renderText();
-                loadHistoryList();
-            } catch (err) {
-                alert("ファイルのインポートに失敗しました。正しいバックアップファイル（.json）か確認してください。");
-            }
+            applyImportedData(e.target.result);
         };
         reader.readAsText(file);
         input.value = ""; 
     }
+
+    // 📥 読み込んだデータをシステムに反映する共通メソッド
+    function applyImportedData(jsonText) {
+        try {
+            const importedData = JSON.parse(jsonText);
+            if (importedData.settings) localStorage.setItem('blank_viewer_settings', importedData.settings);
+            if (importedData.history) localStorage.setItem('blank_viewer_history', importedData.history);
+            
+            alert("データのインポートが完了しました！");
+            currentHistoryIndex = 0;
+            loadSettings();
+            updateStyle();
+            
+            const history = JSON.parse(importedData.history) || [];
+            if (history.length > 0) document.getElementById('textInput').value = history[0].text;
+            
+            renderText();
+            loadHistoryList();
+        } catch (err) {
+            alert("データの反映に失敗しました。ファイルが破損している可能性があります。");
+        }
+    }
+
+
+    /* ==========================================================================
+       ☁️ GOOGLE DRIVE BACKUP & RESTORE FUNCTIONS
+       ========================================================================== */
+
+    // 1. Google 認証クライアントの初期化
+    function initGoogleAuthClient() {
+        if (googleTokenClient !== null) return;
+        
+        googleTokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: GOOGLE_CLIENT_ID,
+            scope: 'https://www.googleapis.com/auth/drive.file', // アプリが生成したファイルのみアクセス
+            callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    googleAccessToken = tokenResponse.access_token;
+                    // 認証待ちの処理があれば実行
+                    if (pendingGoogleTask) {
+                        pendingGoogleTask();
+                        pendingGoogleTask = null;
+                    }
+                }
+            },
+        });
+    }
+
+    // 2. アクセストークン確認のラッパー
+    function executeWithAuth(task) {
+        initGoogleAuthClient();
+        if (googleAccessToken === null) {
+            pendingGoogleTask = task;
+            googleTokenClient.requestAccessToken({ prompt: 'consent' });
+        } else {
+            task();
+        }
+    }
+
+    // 3. Google Driveにファイルをアップロード（新規作成 or 上書き）
+    function backupToGoogleDrive() {
+        if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+            alert("Google クライアントIDが設定されていません。コード内の定数を書き換えてください。");
+            return;
+        }
+        executeWithAuth(() => {
+            // 同名ファイルが存在するか検索
+            const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name='${BACKUP_FILE_NAME}' and trashed=false`;
+            
+            fetch(searchUrl, {
+                headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                const existingFile = data.files && data.files.length > 0 ? data.files[0] : null;
+                const allData = {
+                    settings: localStorage.getItem('blank_viewer_settings'),
+                    history: localStorage.getItem('blank_viewer_history')
+                };
+
+                if (existingFile) {
+                    // 上書き (PATCHメソッド)
+                    const uploadUrl = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=media`;
+                    return fetch(uploadUrl, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `Bearer ${googleAccessToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(allData, null, 2)
+                    });
+                } else {
+                    // 新規作成 (Multipart POSTメソッド)
+                    const metadata = { name: BACKUP_FILE_NAME, mimeType: 'application/json' };
+                    const form = new FormData();
+                    form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+                    form.append("file", new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" }));
+
+                    return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${googleAccessToken}` },
+                        body: form
+                    });
+                }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Upload Failed");
+                return res.json();
+            })
+            .then(() => {
+                alert("Google Drive へのバックアップに成功しました！");
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Google Drive へのアップロード中にエラーが発生しました。");
+            });
+        });
+    }
+
+    // 4. Google Driveからファイルを検索して復元（ダウンロード）
+    function restoreFromGoogleDrive() {
+        if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+            alert("Google クライアントIDが設定されていません。コード内の定数を書き換えてください。");
+            return;
+        }
+        executeWithAuth(() => {
+            const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name='${BACKUP_FILE_NAME}' and trashed=false`;
+            
+            fetch(searchUrl, {
+                headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.files || data.files.length === 0) {
+                    alert("Google Drive上にバックアップファイルが見つかりませんでした。先にバックアップを行ってください。");
+                    return;
+                }
+                
+                const fileId = data.files[0].id;
+                // ファイル内容を取得 (?alt=media を付与)
+                const downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+                
+                return fetch(downloadUrl, {
+                    headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+                });
+            })
+            .then(res => {
+                if (!res) return; // 該当ファイルがなかった場合
+                if (!res.ok) throw new Error("Download Failed");
+                return res.text();
+            })
+            .then(jsonText => {
+                if (jsonText) {
+                    if (confirm("Google Driveのデータで現在の履歴と設定をすべて上書きしますか？")) {
+                        applyImportedData(jsonText);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Google Drive からのデータ復元中にエラーが発生しました。");
+            });
+        });
+    }
+
 
     window.onload = function() {
         loadSettings();
