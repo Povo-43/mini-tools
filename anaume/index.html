@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI穴抜き問題ワークシート Viewer Pro+</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --accent-color: #007bff;
+            --accent-text: #ffffff;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-size: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 12px;
+            transition: all 0.3s ease;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 設定パネル */
+        .config-panel {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .panel-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding-bottom: 5px;
+        }
+        
+        .panel-toggle::after {
+            content: "▼";
+            font-size: 12px;
+            transition: transform 0.2s;
+            color: #888;
+        }
+        .config-panel.open .panel-toggle::after {
+            transform: rotate(180deg);
+        }
+
+        .panel-content {
+            display: none;
+            margin-top: 15px;
+        }
+        .config-panel.open .panel-content {
+            display: block;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        textarea {
+            height: 120px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: var(--accent-text);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+
+        /* 履歴管理 */
+        .history-section {
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            margin-bottom: 15px;
+        }
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 120px;
+            overflow-y: auto;
+            margin-top: 8px;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.03);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .history-item.active {
+            border-left: 4px solid var(--accent-color);
+            background: rgba(0,0,0,0.06);
+            font-weight: bold;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+            box-shadow: none;
+            padding: 0 5px;
+        }
+
+        /* バックアップセクション */
+        .backup-section {
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .file-input-label {
+            display: block;
+            text-align: center;
+            background: #6c757d;
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        /* プレビュー領域 */
+        .viewer-panel {
+            background: var(--card-bg);
+            padding: 20px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            min-height: 200px;
+            line-height: 2.5;
+            font-size: var(--font-size);
+            word-wrap: break-word;
+        }
+
+        .section-title {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 10px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* 📦 穴抜きボックス基本デザイン */
+        .blank-box {
+            display: inline-flex;
+            align-items: center;
+            position: relative;
+            background-color: rgba(0,0,0,0.05);
+            border-bottom: 2px solid var(--accent-color);
+            padding: 0px 8px;
+            margin: 4px 2px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            vertical-align: middle;
+        }
+
+        .blank-text {
+            font-weight: bold;
+            display: none;
+        }
+        
+        .blank-hint {
+            font-size: 0.85em;
+            color: #666;
+            font-weight: normal;
+            font-style: italic;
+            display: inline;
+        }
+
+        .check-buttons {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .check-btn {
+            background: #ffffff;
+            color: #333;
+            border: 1px solid #ccc;
+            font-size: 11px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            width: auto;
+            box-shadow: none;
+        }
+
+        /* 1. クリックされて正解状態 */
+        .blank-box.revealed {
+            background-color: var(--accent-color);
+        }
+        .blank-box.revealed .blank-text {
+            display: inline;
+            color: var(--accent-text);
+        }
+        .blank-box.revealed .blank-hint {
+            display: none;
+        }
+        .blank-box.revealed .check-buttons {
+            display: inline-flex;
+        }
+
+        /* 2. 合っていた（マル）状態 */
+        .blank-box.checked-correct {
+            background-color: #28a745 !important;
+            border-bottom-color: #1e7e34;
+        }
+        .blank-box.checked-correct .blank-text {
+            display: inline;
+            color: #ffffff !important;
+        }
+        .blank-box.checked-correct .blank-hint {
+            display: none;
+        }
+
+        /* 3. 間違えていた（バツ）状態 */
+        .blank-box.checked-wrong {
+            background-color: #dc3545 !important;
+            border-bottom-color: #bd2130;
+        }
+        .blank-box.checked-wrong .blank-text {
+            display: inline;
+            color: #ffffff !important;
+        }
+        .blank-box.checked-wrong .blank-hint {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            body { padding: 20px; }
+            h1 { font-size: 1.8rem; }
+            .main-layout {
+                display: grid;
+                grid-template-columns: 320px 1fr;
+                align-items: start;
+            }
+            .config-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="main-layout">
+        
+        <div class="config-panel" id="configPanel">
+            <div class="panel-toggle" onclick="togglePanel()">
+                <h3>🛠️ 設定と問題入力</h3>
+            </div>
+            
+            <div class="panel-content">
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label>フォント</label>
+                        <select id="fontSelect" onchange="updateStyle(); saveSettings();">
+                            <option value="-apple-system, BlinkMacSystemFont, sans-serif">標準</option>
+                            <option value="'Times New Roman', serif">明朝体風</option>
+                            <option value="monospace">等幅</option>
+                        </select>
+                    </div>
+
+                    <div class="config-item">
+                        <label>サイズ</label>
+                        <select id="sizeSelect" onchange="updateStyle(); saveSettings();">
+                            <option value="15px">小</option>
+                            <option value="17px">中</option>
+                            <option value="21px">大</option>
+                        </select>
+                    </div>
+
+                    <div class="config-item">
+                        <label>正解時のカラー</label>
+                        <select id="colorSelect" onchange="updateStyle(); saveSettings();">
+                            <option value="#007bff">ブルー</option>
+                            <option value="#28a745">グリーン</option>
+                            <option value="#dc3545">レッド</option>
+                            <option value="#fd7e14">オレンジ</option>
+                        </select>
+                    </div>
+
+                    <div class="config-item">
+                        <label>モード</label>
+                        <select id="bgSelect" onchange="updateStyle(); saveSettings();">
+                            <option value="light">ライト</option>
+                            <option value="dark">ダーク</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label>ここにフォーマットテキストを貼り付け：</label>
+                    <textarea id="textInput" placeholder="[TITLE] タイトル"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="navigator.clipboard.writeText('[TITLE] レッスン3 セクション1 の穴埋め問題[SECTION] Section 1I’ve always loved painting. During a spring break in high school, I visited Belgium for two weeks. I [spent my time|used time to do something (past tense)] painting on the streets. People who [passed by|walked past a place or person (past tense)] seemed happy to see my work, [even though|used to introduce a fact that makes the rest of your statement situation seem surprising; &quot;although&quot;] I couldn’t understand their language.[SECTION] Section 2In London, I happened to watch a TV program about a school for [orphans|children whose parents are dead] and street children in Nairobi, Kenya.[TITLE] ：ワークシートのタイトルになります。​[SECTION] ：見出し（セクション分け）を作ります。​[正解の単語や熟語|英語のヒントや説明] ：ここが自動的に穴抜き（空欄）になり、マウスを乗せるとヒントが表示されます。この形式で重要語句を穴抜きにしてください。')">
+                      プロンプトをコピーする
+                    </button>
+                    <button onclick="handleNewRender()">🟢 変換して表示する</button>
+                    <button style="background-color: #6c757d;" onclick="resetAllBlanks()">🔄 全て未解答に戻す</button>
+                </div>
+
+                <div class="history-section">
+                    <label>📁 過去の保存データ履歴</label>
+                    <div class="history-list" id="historyList"></div>
+                </div>
+
+                <div class="backup-section">
+                    <label>💾 データのバックアップ</label>
+                    <button style="background-color: #17a2b8; margin-top: 8px; font-size: 13px; padding: 8px;" onclick="exportAllDataToFile()">📥 全データをファイルに書き出す</button>
+                    <label class="file-input-label" for="importFile">📤 ファイルから読み込む</label>
+                    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importAllDataFromFile(this)">
+                </div>
+            </div>
+        </div>
+
+        <div id="viewer" class="viewer-panel"></div>
+        
+    </div>
+</div>
+
+<script>
+    const defaultText = `[TITLE] Lesson 3: Art for Shared Happiness
+
+[SECTION] Section 1
+I’ve always loved painting. During a spring break in high school, I visited Belgium for two weeks. I [spent my time|used time to do something (past tense)] painting on the streets. People who [passed by|walked past a place] seemed happy to see my work, [even though|although] I couldn’t understand their language.`;
+
+    let currentHistoryIndex = 0; // 現在開いている履歴のインデックス番号
+
+    function togglePanel() {
+        if (window.innerWidth >= 768) return;
+        document.getElementById('configPanel').classList.toggle('open');
+    }
+
+    function updateStyle() {
+        const root = document.documentElement;
+        root.style.setProperty('--font-family', document.getElementById('fontSelect').value);
+        root.style.setProperty('--font-size', document.getElementById('sizeSelect').value);
+        root.style.setProperty('--accent-color', document.getElementById('colorSelect').value);
+
+        if (document.getElementById('bgSelect').value === 'dark') {
+            root.style.setProperty('--bg-color', '#121212');
+            root.style.setProperty('--card-bg', '#1e1e1e');
+            root.style.setProperty('--text-color', '#e0e0e0');
+        } else {
+            root.style.setProperty('--bg-color', '#f8f9fa');
+            root.style.setProperty('--card-bg', '#ffffff');
+            root.style.setProperty('--text-color', '#333333');
+        }
+    }
+
+    function saveSettings() {
+        const settings = {
+            font: document.getElementById('fontSelect').value,
+            size: document.getElementById('sizeSelect').value,
+            color: document.getElementById('colorSelect').value,
+            bg: document.getElementById('bgSelect').value
+        };
+        localStorage.setItem('blank_viewer_settings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+        const saved = localStorage.getItem('blank_viewer_settings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            document.getElementById('fontSelect').value = settings.font || "-apple-system, BlinkMacSystemFont, sans-serif";
+            document.getElementById('sizeSelect').value = settings.size || "17px";
+            document.getElementById('colorSelect').value = settings.color || "#007bff";
+            document.getElementById('bgSelect').value = settings.bg || "light";
+        } else {
+            document.getElementById('sizeSelect').value = "17px";
+        }
+    }
+
+    function resetAllBlanks() {
+        document.querySelectorAll('.blank-box').forEach(box => {
+            box.className = 'blank-box';
+        });
+        saveCurrentScores(); // 正誤状態を消して上書き保存
+    }
+
+    function handleBoxClick(event, element) {
+        if (event.target.tagName === 'BUTTON') return;
+        if (element.classList.contains('checked-correct') || element.classList.contains('checked-wrong')) return;
+        element.classList.toggle('revealed');
+    }
+
+    // 🟢 マルバツを入力して即時上書き保存
+    function setScore(event, btn, status) {
+        event.stopPropagation();
+        const box = btn.closest('.blank-box');
+        
+        box.classList.remove('revealed');
+        if (status === 'correct') {
+            box.classList.add('checked-correct');
+        } else if (status === 'wrong') {
+            box.classList.add('checked-wrong');
+        }
+        saveCurrentScores(); // 毎回やるたびに正誤データを上書き
+    }
+
+    // 現在のプレビュー画面の⭕❌状態を集計して履歴に上書き
+    function saveCurrentScores() {
+        let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        if (!history[currentHistoryIndex]) return;
+
+        const boxes = document.querySelectorAll('.blank-box');
+        let scores = [];
+        
+        boxes.forEach((box, i) => {
+            if (box.classList.contains('checked-correct')) {
+                scores.push({ index: i, status: 'correct' });
+            } else if (box.classList.contains('checked-wrong')) {
+                scores.push({ index: i, status: 'wrong' });
+            }
+        });
+
+        // 現在の履歴オブジェクトにscores配列を上書き
+        history[currentHistoryIndex].scores = scores;
+        localStorage.setItem('blank_viewer_history', JSON.stringify(history));
+    }
+
+    // 「変換して表示する」ボタンが押された時の処理（新規登録）
+    function handleNewRender() {
+        const text = document.getElementById('textInput').value;
+        if (!text.trim()) return;
+
+        let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        
+        // すでに全く同じテキストが履歴にあるか探す
+        let existingIndex = history.findIndex(item => item.text === text);
+        
+        if (existingIndex !== -1) {
+            // すでにある場合はそれを開く（正誤データを維持するため新しく作らない）
+            currentHistoryIndex = existingIndex;
+        } else {
+            // 新しいテキストなら先頭に追加
+            let title = "無題のワークシート";
+            const titleMatch = text.match(/\[TITLE\](.*)/);
+            if (titleMatch && titleMatch[1]) title = titleMatch[1].trim();
+
+            history.unshift({ title: title, text: text, scores: [] });
+            if (history.length > 15) history.pop();
+            localStorage.setItem('blank_viewer_history', JSON.stringify(history));
+            currentHistoryIndex = 0;
+        }
+
+        renderText();
+        loadHistoryList();
+    }
+
+    // 本文を描画し、保存されている正誤データを復元する
+    function renderText() {
+        const history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        const currentItem = history[currentHistoryIndex];
+        const text = currentItem ? currentItem.text : document.getElementById('textInput').value;
+
+        const viewer = document.getElementById('viewer');
+        if (!text.trim()) {
+            viewer.innerHTML = '<p style="color:red;padding:10px;">テキストが空です</p>';
+            return;
+        }
+
+        const lines = text.split('\n');
+        let htmlOutput = "";
+
+        lines.forEach(line => {
+            let trimmed = line.trim();
+            if (!trimmed) {
+                htmlOutput += "<br>";
+                return;
+            }
+
+            if (trimmed.startsWith("[TITLE]")) {
+                htmlOutput += `<h1>${trimmed.replace("[TITLE]", "").trim()}</h1>`;
+                return;
+            }
+
+            if (trimmed.startsWith("[SECTION]")) {
+                htmlOutput += `<h3 class="section-title">${trimmed.replace("[SECTION]", "").trim()}</h3>`;
+                return;
+            }
+
+            let processedLine = trimmed.replace(/\[([^\]|]+)\|([^\]]+)\]/g, function(match, word, hint) {
+                return `<span class="blank-box" onclick="handleBoxClick(event, this)">
+                            <span class="blank-text">${word}</span>
+                            <span class="blank-hint">(${hint})</span>
+                            <span class="check-buttons">
+                                <button class="check-btn" onclick="setScore(event, this, 'correct')">⭕</button>
+                                <button class="check-btn" onclick="setScore(event, this, 'wrong')">❌</button>
+                            </span>
+                        </span>`;
+            });
+
+            htmlOutput += `<p>${processedLine}</p>`;
+        });
+
+        viewer.innerHTML = htmlOutput;
+
+        // 保存されていた正誤（scores）があればここで反映する
+        if (currentItem && currentItem.scores) {
+            const boxes = document.querySelectorAll('.blank-box');
+            currentItem.scores.forEach(score => {
+                if (boxes[score.index]) {
+                    if (score.status === 'correct') boxes[score.index].classList.add('checked-correct');
+                    if (score.status === 'wrong') boxes[score.index].classList.add('checked-wrong');
+                }
+            });
+        }
+    }
+
+    function loadHistoryList() {
+        const historyList = document.getElementById('historyList');
+        const history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        
+        if (history.length === 0) {
+            historyList.innerHTML = '<span style="font-size:12px;color:#888;">履歴はありません</span>';
+            return;
+        }
+
+        historyList.innerHTML = history.map((item, index) => `
+            <div class="history-item ${index === currentHistoryIndex ? 'active' : ''}" onclick="loadHistoryItem(${index})">
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%;">${item.title}</span>
+                <button class="delete-btn" onclick="deleteHistoryItem(event, ${index})">削除</button>
+            </div>
+        `).join('');
+    }
+
+    function loadHistoryItem(index) {
+        const history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        if (history[index]) {
+            currentHistoryIndex = index;
+            document.getElementById('textInput').value = history[index].text;
+            renderText();
+            loadHistoryList();
+            if (window.innerWidth < 768) togglePanel();
+        }
+    }
+
+    function deleteHistoryItem(event, index) {
+        event.stopPropagation();
+        let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        history.splice(index, 1);
+        localStorage.setItem('blank_viewer_history', JSON.stringify(history));
+        
+        if (currentHistoryIndex >= history.length) {
+            currentHistoryIndex = Math.max(0, history.length - 1);
+        }
+        
+        if (history.length > 0) {
+            document.getElementById('textInput').value = history[currentHistoryIndex].text;
+        } else {
+            document.getElementById('textInput').value = "";
+        }
+        
+        renderText();
+        loadHistoryList();
+    }
+
+    // --- 📥 ファイルエクスポート (JSON形式で全データ書き出し) ---
+    function exportAllDataToFile() {
+        const allData = {
+            settings: localStorage.getItem('blank_viewer_settings'),
+            history: localStorage.getItem('blank_viewer_history')
+        };
+        const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `blank_viewer_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // --- 📤 ファイルインポート (JSONファイル読み込み) ---
+    function importAllDataFromFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData.settings) localStorage.setItem('blank_viewer_settings', importedData.settings);
+                if (importedData.history) localStorage.setItem('blank_viewer_history', importedData.history);
+                
+                alert("データのインポートが完了しました！");
+                currentHistoryIndex = 0;
+                loadSettings();
+                updateStyle();
+                
+                const history = JSON.parse(importedData.history) || [];
+                if (history.length > 0) document.getElementById('textInput').value = history[0].text;
+                
+                renderText();
+                loadHistoryList();
+            } catch (err) {
+                alert("ファイルのインポートに失敗しました。正しいバックアップファイル（.json）か確認してください。");
+            }
+        };
+        reader.readAsText(file);
+        input.value = ""; // 連続選択できるようにリセット
+    }
+
+    window.onload = function() {
+        loadSettings();
+        
+        let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        if (history.length === 0) {
+            // 初期状態はデフォルトサンプルを履歴に突っ込んでおく
+            history = [{ title: "Lesson 3 サンプル", text: defaultText, scores: [] }];
+            localStorage.setItem('blank_viewer_history', JSON.stringify(history));
+        }
+        
+        currentHistoryIndex = 0;
+        document.getElementById('textInput').value = history[0].text;
+
+        if(window.innerWidth < 768) {
+            document.getElementById('configPanel').classList.remove('open');
+        } else {
+            document.getElementById('configPanel').classList.add('open');
+        }
+
+        updateStyle();
+        renderText();
+        loadHistoryList();
+    };
+</script>
+
+</body>
+</html>
