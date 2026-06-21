@@ -12,6 +12,11 @@
             --text-color: #333333;
             --accent-color: #007bff;
             --accent-text: #ffffff;
+            --muted-text: #6b7280;
+            --border-color: rgba(148,163,184,0.28);
+            --soft-bg: rgba(0,123,255,0.06);
+            --input-bg: rgba(255,255,255,0.72);
+            --card-shadow: 0 10px 30px rgba(15,23,42,0.08);
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-size: 16px;
         }
@@ -23,7 +28,9 @@
 
         body {
             font-family: var(--font-family);
-            background-color: var(--bg-color);
+            background:
+                radial-gradient(circle at top left, rgba(0,123,255,0.10), transparent 28rem),
+                var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 12px;
@@ -32,7 +39,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1180px;
             margin: 0 auto;
         }
 
@@ -51,15 +58,16 @@
         .main-layout {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 18px;
         }
 
         /* 設定パネル */
         .config-panel {
             background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            box-shadow: var(--card-shadow);
         }
 
         .panel-toggle {
@@ -67,7 +75,7 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            padding-bottom: 5px;
+            padding-bottom: 2px;
         }
         
         .panel-toggle::after {
@@ -85,7 +93,8 @@
             margin-top: 15px;
         }
         .config-panel.open .panel-content {
-            display: block;
+            display: grid;
+            gap: 14px;
         }
 
         .config-grid {
@@ -104,21 +113,30 @@
         label {
             font-size: 11px;
             font-weight: bold;
-            color: #666;
+            color: var(--muted-text);
+            letter-spacing: 0.02em;
         }
 
-        select, textarea {
+        select, textarea, input[type="text"], input[type="search"] {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             font-size: 14px;
-            background-color: var(--card-bg);
+            background: var(--input-bg);
             color: var(--text-color);
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        select:focus, textarea:focus, input[type="text"]:focus, input[type="search"]:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.12);
+            background: var(--card-bg);
         }
 
         textarea {
-            height: 120px;
+            height: 132px;
             font-family: monospace;
             resize: vertical;
         }
@@ -126,21 +144,27 @@
         .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 0;
         }
 
         button {
             background-color: var(--accent-color);
             color: var(--accent-text);
             border: none;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 11px 12px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 15px;
+            font-weight: 700;
+            font-size: 14px;
             width: 100%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 14px rgba(0,123,255,0.16);
+            transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            box-shadow: 0 8px 18px rgba(0,123,255,0.20);
+            transform: translateY(-1px);
         }
 
         button:active {
@@ -150,15 +174,17 @@
 
         /* 履歴管理 */
         .history-section {
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            background: var(--soft-bg);
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 0;
         }
         .history-list {
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            max-height: 120px;
+            gap: 8px;
+            max-height: 220px;
             overflow-y: auto;
             margin-top: 8px;
         }
@@ -166,15 +192,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.03);
-            padding: 8px 12px;
-            border-radius: 6px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 12px;
             font-size: 13px;
             cursor: pointer;
         }
         .history-item.active {
             border-left: 4px solid var(--accent-color);
-            background: rgba(0,0,0,0.06);
+            background: rgba(0,123,255,0.10);
             font-weight: bold;
         }
         .delete-btn {
@@ -190,8 +217,10 @@
 
         /* バックアップセクション */
         .backup-section {
-            border-top: 1px solid #eee;
-            padding-top: 15px;
+            border: 1px solid var(--border-color);
+            background: var(--soft-bg);
+            padding: 12px;
+            border-radius: 16px;
         }
         .file-input-label {
             display: block;
@@ -209,9 +238,10 @@
         /* プレビュー領域 */
         .viewer-panel {
             background: var(--card-bg);
-            padding: 20px 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: clamp(18px, 3vw, 32px);
+            border: 1px solid var(--border-color);
+            border-radius: 22px;
+            box-shadow: var(--card-shadow);
             min-height: 200px;
             line-height: 2.5;
             font-size: var(--font-size);
@@ -220,7 +250,9 @@
 
         .section-title {
             border-left: 4px solid var(--accent-color);
-            padding-left: 10px;
+            background: var(--soft-bg);
+            padding: 8px 12px;
+            border-radius: 12px;
             margin-top: 25px;
             margin-bottom: 15px;
             font-size: 1.2rem;
@@ -231,11 +263,12 @@
             display: inline-flex;
             align-items: center;
             position: relative;
-            background-color: rgba(0,0,0,0.05);
+            background-color: var(--soft-bg);
+            border: 1px solid rgba(0,123,255,0.18);
             border-bottom: 2px solid var(--accent-color);
-            padding: 0px 8px;
+            padding: 1px 8px;
             margin: 4px 2px;
-            border-radius: 6px 6px 0 0;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
             vertical-align: middle;
@@ -330,15 +363,168 @@
             display: none;
         }
 
+
+        .tag-category-section,
+        .filter-section,
+        .stats-panel,
+        .auto-grade-section {
+            border: 1px solid var(--border-color);
+            background: var(--soft-bg);
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 0;
+        }
+
+        .metadata-grid,
+        .filter-grid,
+        .auto-grade-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .inline-check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-pill, .meta-pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            background: rgba(0,123,255,0.12);
+            color: var(--accent-color);
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        .history-main {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .history-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            display: block;
+            margin-top: 2px;
+            font-size: 10px;
+            color: #777;
+        }
+
+        .section-progress-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .progress-row {
+            display: grid;
+            grid-template-columns: minmax(80px, 1fr) 2fr 42px;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .progress-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: rgba(0,0,0,0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, var(--accent-color));
+            width: 0%;
+            transition: width 0.25s ease;
+        }
+
+        .answer-input {
+            min-width: 112px;
+            max-width: 190px;
+            margin-left: 8px;
+            padding: 4px 8px !important;
+            font-size: 0.9em !important;
+            line-height: 1.2;
+        }
+
+        .blank-box.auto-correct {
+            background-color: #28a745 !important;
+            border-bottom-color: #1e7e34;
+        }
+
+        .blank-box.auto-wrong {
+            background-color: #dc3545 !important;
+            border-bottom-color: #bd2130;
+        }
+
         @media (min-width: 768px) {
             body { padding: 20px; }
             h1 { font-size: 1.8rem; }
             .main-layout {
                 display: grid;
-                grid-template-columns: 320px 1fr;
+                grid-template-columns: 360px minmax(0, 1fr);
                 align-items: start;
             }
             .config-grid { grid-template-columns: repeat(2, 1fr); }
+            .btn-group { grid-template-columns: repeat(2, 1fr); display: grid; }
+            .config-panel { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow: auto; }
         }
     </style>
 </head>
@@ -396,6 +582,31 @@
                     <textarea id="textInput" placeholder="[TITLE] タイトル"></textarea>
                 </div>
 
+                <div class="tag-category-section">
+                    <label>🏷️ タグ・カテゴリ</label>
+                    <div class="metadata-grid">
+                        <input type="text" id="subjectInput" placeholder="科目（例：英語、数学）" oninput="saveCurrentMetadata()">
+                        <select id="difficultySelect" onchange="saveCurrentMetadata()">
+                            <option value="">難易度を選択</option>
+                            <option value="基礎">基礎</option>
+                            <option value="標準">標準</option>
+                            <option value="発展">発展</option>
+                            <option value="難関">難関</option>
+                        </select>
+                        <input type="text" id="tagsInput" placeholder="タグ（カンマ区切り：文法, Lesson3）" oninput="saveCurrentMetadata()">
+                    </div>
+                    <div class="tag-list" id="currentTagPreview"></div>
+                </div>
+
+                <div class="auto-grade-section">
+                    <label>🤖 自動採点モード</label>
+                    <div class="auto-grade-options">
+                        <label class="inline-check"><input type="checkbox" id="autoGradeEnabled" onchange="saveSettings(); renderText();"> テキスト入力で自動採点する</label>
+                        <label class="inline-check"><input type="checkbox" id="partialMatchEnabled" onchange="saveSettings(); autoGradeAllVisible();"> 部分一致を正解にする</label>
+                        <label class="inline-check"><input type="checkbox" id="caseSensitiveEnabled" onchange="saveSettings(); autoGradeAllVisible();"> 大文字・小文字を区別する</label>
+                    </div>
+                </div>
+
                 <div class="btn-group">
                     <button onclick="navigator.clipboard.writeText('[TITLE] レッスン3 セクション1 の穴埋め問題[SECTION] Section 1I’ve always loved painting. During a spring break in high school, I visited Belgium for two weeks. I [spent my time|used time to do something (past tense)] painting on the streets. People who [passed by|walked past a place or person (past tense)] seemed happy to see my work, [even though|used to introduce a fact that makes the rest of your statement situation seem surprising; &quot;although&quot;] I couldn’t understand their language.[SECTION] Section 2In London, I happened to watch a TV program about a school for [orphans|children whose parents are dead] and street children in Nairobi, Kenya.[TITLE] ：ワークシートのタイトルになります。​[SECTION] ：見出し（セクション分け）を作ります。​[正解の単語や熟語|英語のヒントや説明] ：ここが自動的に穴抜き（空欄）になり、マウスを乗せるとヒントが表示されます。この形式で重要語句を穴抜きにしてください。')">
                       プロンプトをコピーする
@@ -403,6 +614,31 @@
                     <button onclick="handleNewRender()">🟢 変換して表示する</button>
                     <button style="background-color: #ffc107; color: #333;" onclick="resetOnlyFailedAndBlanks()">🔥 誤答・未解のみを穴埋めに戻す</button>
                     <button style="background-color: #6c757d;" onclick="resetAllBlanks()">🔄 全て未解答に戻す</button>
+                </div>
+
+                <div class="stats-panel">
+                    <label>📊 統計・進捗ダッシュボード</label>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-value" id="accuracyStat">0%</div><span class="stat-label">正答率</span></div>
+                        <div class="stat-card"><div class="stat-value" id="progressStat">0/0</div><span class="stat-label">解答済み</span></div>
+                        <div class="stat-card"><div class="stat-value" id="timeStat">0分</div><span class="stat-label">学習時間</span></div>
+                    </div>
+                    <div class="section-progress-list" id="sectionProgressList"></div>
+                </div>
+
+                <div class="filter-section">
+                    <label>🔎 履歴フィルター</label>
+                    <div class="filter-grid">
+                        <input type="search" id="subjectFilter" placeholder="科目で絞り込み" oninput="loadHistoryList()">
+                        <select id="difficultyFilter" onchange="loadHistoryList()">
+                            <option value="">すべての難易度</option>
+                            <option value="基礎">基礎</option>
+                            <option value="標準">標準</option>
+                            <option value="発展">発展</option>
+                            <option value="難関">難関</option>
+                        </select>
+                        <input type="search" id="tagFilter" placeholder="タグで絞り込み" oninput="loadHistoryList()">
+                    </div>
                 </div>
 
                 <div class="history-section">
@@ -458,10 +694,20 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             root.style.setProperty('--bg-color', '#121212');
             root.style.setProperty('--card-bg', '#1e1e1e');
             root.style.setProperty('--text-color', '#e0e0e0');
+            root.style.setProperty('--muted-text', '#a7b0c0');
+            root.style.setProperty('--border-color', 'rgba(148,163,184,0.22)');
+            root.style.setProperty('--soft-bg', 'rgba(96,165,250,0.10)');
+            root.style.setProperty('--input-bg', 'rgba(15,23,42,0.55)');
+            root.style.setProperty('--card-shadow', '0 14px 34px rgba(0,0,0,0.22)');
         } else {
             root.style.setProperty('--bg-color', '#f8f9fa');
             root.style.setProperty('--card-bg', '#ffffff');
             root.style.setProperty('--text-color', '#333333');
+            root.style.setProperty('--muted-text', '#6b7280');
+            root.style.setProperty('--border-color', 'rgba(148,163,184,0.28)');
+            root.style.setProperty('--soft-bg', 'rgba(0,123,255,0.06)');
+            root.style.setProperty('--input-bg', 'rgba(255,255,255,0.72)');
+            root.style.setProperty('--card-shadow', '0 10px 30px rgba(15,23,42,0.08)');
         }
     }
 
@@ -470,7 +716,10 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             font: document.getElementById('fontSelect').value,
             size: document.getElementById('sizeSelect').value,
             color: document.getElementById('colorSelect').value,
-            bg: document.getElementById('bgSelect').value
+            bg: document.getElementById('bgSelect').value,
+            autoGradeEnabled: document.getElementById('autoGradeEnabled').checked,
+            partialMatchEnabled: document.getElementById('partialMatchEnabled').checked,
+            caseSensitiveEnabled: document.getElementById('caseSensitiveEnabled').checked
         };
         localStorage.setItem('blank_viewer_settings', JSON.stringify(settings));
     }
@@ -483,8 +732,12 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             document.getElementById('sizeSelect').value = settings.size || "17px";
             document.getElementById('colorSelect').value = settings.color || "#007bff";
             document.getElementById('bgSelect').value = settings.bg || "light";
+            document.getElementById('autoGradeEnabled').checked = !!settings.autoGradeEnabled;
+            document.getElementById('partialMatchEnabled').checked = settings.partialMatchEnabled !== false;
+            document.getElementById('caseSensitiveEnabled').checked = !!settings.caseSensitiveEnabled;
         } else {
             document.getElementById('sizeSelect').value = "17px";
+            document.getElementById('partialMatchEnabled').checked = true;
         }
     }
 
@@ -493,6 +746,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             box.className = 'blank-box';
         });
         saveCurrentScores(); 
+        updateStatsDashboard();
     }
 
     function resetOnlyFailedAndBlanks() {
@@ -504,6 +758,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             }
         });
         saveCurrentScores(); 
+        updateStatsDashboard();
     }
 
     function handleBoxClick(event, element) {
@@ -524,6 +779,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             box.classList.add('checked-wrong');
         }
         saveCurrentScores(); 
+        updateStatsDashboard();
     }
 
     function saveCurrentScores() {
@@ -544,7 +800,9 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         });
 
         history[currentHistoryIndex].scores = scores;
+        history[currentHistoryIndex].studySeconds = getCurrentStudySeconds();
         localStorage.setItem('blank_viewer_history', JSON.stringify(history));
+        resetStudyTimer();
     }
 
     function handleNewRender() {
@@ -561,12 +819,13 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             const titleMatch = text.match(/\[TITLE\](.*)/);
             if (titleMatch && titleMatch[1]) title = titleMatch[1].trim();
 
-            history.unshift({ title: title, text: text, scores: [] });
+            history.unshift({ title: title, text: text, scores: [], subject: '', difficulty: '', tags: [], studySeconds: 0 });
             if (history.length > 300) history.pop();
             localStorage.setItem('blank_viewer_history', JSON.stringify(history));
             currentHistoryIndex = 0;
         }
 
+        loadMetadataForm();
         renderText();
         loadHistoryList();
     }
@@ -585,6 +844,9 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         const lines = text.split('\n');
         let htmlOutput = "";
 
+        let currentSectionName = '未分類';
+        const getCurrentSectionName = () => currentSectionName;
+
         lines.forEach(line => {
             let trimmed = line.trim();
             if (!trimmed) {
@@ -593,19 +855,26 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             }
 
             if (trimmed.startsWith("[TITLE]")) {
-                htmlOutput += `<h1>${trimmed.replace("[TITLE]", "").trim()}</h1>`;
+                htmlOutput += `<h1>${escapeHtml(trimmed.replace("[TITLE]", "").trim())}</h1>`;
                 return;
             }
 
             if (trimmed.startsWith("[SECTION]")) {
-                htmlOutput += `<h3 class="section-title">${trimmed.replace("[SECTION]", "").trim()}</h3>`;
+                currentSectionName = trimmed.replace("[SECTION]", "").trim() || '未分類';
+                htmlOutput += `<h3 class="section-title">${escapeHtml(currentSectionName)}</h3>`;
                 return;
             }
 
+            let blankIndexInLine = 0;
             let processedLine = trimmed.replace(/\[([^\]|]+)\|([^\]]+)\]/g, function(match, word, hint) {
-                return `<span class="blank-box" onclick="handleBoxClick(event, this)">
-                            <span class="blank-text">${word}</span>
-                            <span class="blank-hint">(${hint})</span>
+                const inputHtml = document.getElementById('autoGradeEnabled').checked
+                    ? `<input class="answer-input" type="text" placeholder="答えを入力" onclick="event.stopPropagation()" oninput="autoGradeAnswer(this)">`
+                    : '';
+                blankIndexInLine++;
+                return `<span class="blank-box" data-answer="${escapeHtml(word)}" data-section="${escapeHtml(getCurrentSectionName())}" onclick="handleBoxClick(event, this)">
+                            <span class="blank-text">${escapeHtml(word)}</span>
+                            <span class="blank-hint">(${escapeHtml(hint)})</span>
+                            ${inputHtml}
                             <span class="check-buttons">
                                 <button class="check-btn" onclick="setScore(event, this, 'correct')">⭕</button>
                                 <button class="check-btn" onclick="setScore(event, this, 'wrong')">❌</button>
@@ -628,23 +897,163 @@ I’ve always loved painting. During a spring break in high school, I visited Be
                 }
             });
         }
+        updateStatsDashboard();
+    }
+
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>'"]/g, char => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[char]));
+    }
+
+    function parseTags(value) {
+        return value.split(',').map(tag => tag.trim()).filter(Boolean);
+    }
+
+    function getCurrentStudySeconds() {
+        const history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        const currentItem = history[currentHistoryIndex] || {};
+        const baseSeconds = Number(currentItem.studySeconds || 0);
+        if (!window.currentStudyStartedAt) return baseSeconds;
+        return baseSeconds + Math.floor((Date.now() - window.currentStudyStartedAt) / 1000);
+    }
+
+    function resetStudyTimer() {
+        window.currentStudyStartedAt = Date.now();
+    }
+
+    function loadMetadataForm() {
+        const history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        const currentItem = history[currentHistoryIndex] || {};
+        document.getElementById('subjectInput').value = currentItem.subject || '';
+        document.getElementById('difficultySelect').value = currentItem.difficulty || '';
+        document.getElementById('tagsInput').value = (currentItem.tags || []).join(', ');
+        updateTagPreview();
+        resetStudyTimer();
+    }
+
+    function saveCurrentMetadata() {
+        let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        if (!history[currentHistoryIndex]) return;
+        history[currentHistoryIndex].subject = document.getElementById('subjectInput').value.trim();
+        history[currentHistoryIndex].difficulty = document.getElementById('difficultySelect').value;
+        history[currentHistoryIndex].tags = parseTags(document.getElementById('tagsInput').value);
+        history[currentHistoryIndex].studySeconds = getCurrentStudySeconds();
+        localStorage.setItem('blank_viewer_history', JSON.stringify(history));
+        resetStudyTimer();
+        updateTagPreview();
+        loadHistoryList();
+    }
+
+    function updateTagPreview() {
+        const subject = document.getElementById('subjectInput').value.trim();
+        const difficulty = document.getElementById('difficultySelect').value;
+        const tags = parseTags(document.getElementById('tagsInput').value);
+        const pills = [];
+        if (subject) pills.push(`<span class="meta-pill">科目: ${escapeHtml(subject)}</span>`);
+        if (difficulty) pills.push(`<span class="meta-pill">難易度: ${escapeHtml(difficulty)}</span>`);
+        tags.forEach(tag => pills.push(`<span class="tag-pill">#${escapeHtml(tag)}</span>`));
+        document.getElementById('currentTagPreview').innerHTML = pills.join('');
+    }
+
+    function normalizeAnswer(value) {
+        const trimmed = value.trim();
+        return document.getElementById('caseSensitiveEnabled').checked ? trimmed : trimmed.toLowerCase();
+    }
+
+    function isAnswerCorrect(userAnswer, correctAnswer) {
+        const input = normalizeAnswer(userAnswer);
+        const answer = normalizeAnswer(correctAnswer);
+        if (!input) return null;
+        return document.getElementById('partialMatchEnabled').checked
+            ? answer.includes(input) || input.includes(answer)
+            : input === answer;
+    }
+
+    function autoGradeAnswer(input) {
+        const box = input.closest('.blank-box');
+        const result = isAnswerCorrect(input.value, box.dataset.answer || '');
+        box.classList.remove('revealed', 'checked-correct', 'checked-wrong', 'auto-correct', 'auto-wrong');
+        if (result === true) {
+            box.classList.add('checked-correct', 'auto-correct');
+        } else if (result === false) {
+            box.classList.add('checked-wrong', 'auto-wrong');
+        }
+        saveCurrentScores();
+        updateStatsDashboard();
+    }
+
+    function autoGradeAllVisible() {
+        document.querySelectorAll('.answer-input').forEach(input => autoGradeAnswer(input));
+    }
+
+    function formatStudyTime(seconds) {
+        if (seconds < 60) return `${seconds}秒`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}分`;
+        return `${Math.floor(minutes / 60)}時間${minutes % 60}分`;
+    }
+
+    function updateStatsDashboard() {
+        const boxes = Array.from(document.querySelectorAll('.blank-box'));
+        const total = boxes.length;
+        const correct = boxes.filter(box => box.classList.contains('checked-correct') || box.classList.contains('passed-correct')).length;
+        const wrong = boxes.filter(box => box.classList.contains('checked-wrong')).length;
+        const answered = correct + wrong;
+        const accuracy = answered ? Math.round((correct / answered) * 100) : 0;
+        document.getElementById('accuracyStat').textContent = `${accuracy}%`;
+        document.getElementById('progressStat').textContent = `${answered}/${total}`;
+        document.getElementById('timeStat').textContent = formatStudyTime(getCurrentStudySeconds());
+
+        const sections = {};
+        boxes.forEach(box => {
+            const section = box.dataset.section || '未分類';
+            sections[section] ||= { total: 0, done: 0 };
+            sections[section].total++;
+            if (box.classList.contains('checked-correct') || box.classList.contains('checked-wrong') || box.classList.contains('passed-correct')) {
+                sections[section].done++;
+            }
+        });
+        document.getElementById('sectionProgressList').innerHTML = Object.entries(sections).map(([section, data]) => {
+            const pct = data.total ? Math.round((data.done / data.total) * 100) : 0;
+            return `<div class="progress-row"><span class="progress-label">${escapeHtml(section)}</span><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`;
+        }).join('') || '<span style="font-size:12px;color:#888;">セクションがありません</span>';
     }
 
     function loadHistoryList() {
         const historyList = document.getElementById('historyList');
         const history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
+        const subjectFilter = (document.getElementById('subjectFilter')?.value || '').trim().toLowerCase();
+        const difficultyFilter = document.getElementById('difficultyFilter')?.value || '';
+        const tagFilter = (document.getElementById('tagFilter')?.value || '').trim().toLowerCase();
+        const filtered = history.map((item, index) => ({ item, index })).filter(({ item }) => {
+            const subject = (item.subject || '').toLowerCase();
+            const tags = (item.tags || []).map(tag => tag.toLowerCase());
+            return (!subjectFilter || subject.includes(subjectFilter))
+                && (!difficultyFilter || item.difficulty === difficultyFilter)
+                && (!tagFilter || tags.some(tag => tag.includes(tagFilter)));
+        });
         
         if (history.length === 0) {
             historyList.innerHTML = '<span style="font-size:12px;color:#888;">履歴はありません</span>';
             return;
         }
+        if (filtered.length === 0) {
+            historyList.innerHTML = '<span style="font-size:12px;color:#888;">条件に合う履歴はありません</span>';
+            return;
+        }
 
-        historyList.innerHTML = history.map((item, index) => `
-            <div class="history-item ${index === currentHistoryIndex ? 'active' : ''}" onclick="loadHistoryItem(${index})">
-                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%;">${item.title}</span>
+        historyList.innerHTML = filtered.map(({ item, index }) => {
+            const meta = [];
+            if (item.subject) meta.push(`<span class="meta-pill">${escapeHtml(item.subject)}</span>`);
+            if (item.difficulty) meta.push(`<span class="meta-pill">${escapeHtml(item.difficulty)}</span>`);
+            (item.tags || []).slice(0, 3).forEach(tag => meta.push(`<span class="tag-pill">#${escapeHtml(tag)}</span>`));
+            return `<div class="history-item ${index === currentHistoryIndex ? 'active' : ''}" onclick="loadHistoryItem(${index})">
+                <span class="history-main"><span class="history-title">${escapeHtml(item.title)}</span><span class="history-meta">${meta.join('')}</span></span>
                 <button class="delete-btn" onclick="deleteHistoryItem(event, ${index})">削除</button>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     }
 
     function loadHistoryItem(index) {
@@ -652,6 +1061,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         if (history[index]) {
             currentHistoryIndex = index;
             document.getElementById('textInput').value = history[index].text;
+            loadMetadataForm();
             renderText();
             loadHistoryList();
             if (window.innerWidth < 768) togglePanel();
@@ -674,6 +1084,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             document.getElementById('textInput').value = "";
         }
         
+        loadMetadataForm();
         renderText();
         loadHistoryList();
     }
@@ -718,6 +1129,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             
             const history = JSON.parse(importedData.history) || [];
             if (history.length > 0) document.getElementById('textInput').value = history[0].text;
+            loadMetadataForm();
             
             renderText();
             loadHistoryList();
@@ -874,12 +1286,13 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         
         let history = JSON.parse(localStorage.getItem('blank_viewer_history')) || [];
         if (history.length === 0) {
-            history = [{ title: "Lesson 3 サンプル", text: defaultText, scores: [] }];
+            history = [{ title: "Lesson 3 サンプル", text: defaultText, scores: [], subject: '英語', difficulty: '標準', tags: ['サンプル'], studySeconds: 0 }];
             localStorage.setItem('blank_viewer_history', JSON.stringify(history));
         }
         
         currentHistoryIndex = 0;
         document.getElementById('textInput').value = history[0].text;
+        loadMetadataForm();
 
         if(window.innerWidth < 768) {
             document.getElementById('configPanel').classList.remove('open');
@@ -890,6 +1303,8 @@ I’ve always loved painting. During a spring break in high school, I visited Be
         updateStyle();
         renderText();
         loadHistoryList();
+        setInterval(updateStatsDashboard, 10000);
+        window.addEventListener('beforeunload', saveCurrentScores);
     };
 </script>
 
