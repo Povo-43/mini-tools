@@ -562,7 +562,7 @@ I’ve always loved painting. During a spring break in high school, I visited Be
             if (titleMatch && titleMatch[1]) title = titleMatch[1].trim();
 
             history.unshift({ title: title, text: text, scores: [] });
-            if (history.length > 15) history.pop();
+            if (history.length > 300) history.pop();
             localStorage.setItem('blank_viewer_history', JSON.stringify(history));
             currentHistoryIndex = 0;
         }
