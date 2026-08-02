@@ -41,7 +41,7 @@ html, body {
   transition: opacity 0.4s linear, transform 0.2s ease;  
   cursor: pointer;
 }
-  
+
 .char:hover {  
   transform: scale(1.5);  
   z-index: 10;  
@@ -134,6 +134,16 @@ const LIFETIME = 50;
 const TICK = 10;
 
 /* =========================
+ * Unicode 範囲定義 (ひらがな・カタカナ・漢字)
+ * ========================= */
+
+const UNICODE_RANGES = [
+  [0x3041, 0x3096], // ひらがな
+  [0x30A1, 0x30FA], // カタカナ
+  [0x4E00, 0x9FFF]  // CJK統合漢字 (常用・一般漢字)
+];
+
+/* =========================
  * DOM
  * ========================= */
 
@@ -151,7 +161,6 @@ let cols = 0;
 let rows = 0;
 let grid = [];
 
-let wordData = null;
 let charQueue = [];
 
 let running = true;
@@ -164,6 +173,13 @@ let hasReachedBottom = false;
  * ========================= */
 
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+// ランダムに1文字（ひらがな・カタカナ・漢字）を生成
+function getRandomChar() {
+  const range = pick(UNICODE_RANGES);
+  const code = Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
+  return String.fromCharCode(code);
+}
 
 /* =========================
  * グリッド管理
@@ -212,25 +228,14 @@ function hasEmptyCell() {
 }
 
 /* =========================
- * 単語生成
+ * キュー補充（ランダム文字列）
  * ========================= */
 
-function renderStructure(template) {
-  return template.replace(/\{(\w+)\}/g, (_, key) => {
-    const pool = wordData[key + "s"] || wordData[key];
-    return pool ? pick(pool) : "";
-  });
-}
-
-function generateSentence() {
-  const s = renderStructure(pick(wordData.structures));
-  return Math.random() < 0.5
-    ? s + " " + renderStructure(pick(wordData.structures))
-    : s;
-}
-
 function refillCharQueue() {
-  charQueue.push(...generateSentence().split(""));
+  // 50文字分まとめてキューに追加
+  for (let i = 0; i < 50; i++) {
+    charQueue.push(getRandomChar());
+  }
 }
 
 /* =========================
@@ -300,8 +305,6 @@ function pickSize(x, y) {
 }
 
 function tickOnce() {
-  if (!wordData) return false;
-
   if (charQueue.length === 0) {
     refillCharQueue();
   }
@@ -319,7 +322,7 @@ function tickOnce() {
         return true;
       }
 
-      for (const size of sizes) {
+      for (const size of SIZES) {
         if (canPlace(x, y, size)) {
           createChar(ch, x, y, size);
 
@@ -437,7 +440,6 @@ function resetAll() {
 stage.addEventListener("click", () => {
   if (running) pause();
   overlay.style.display = "flex";
-  console.log("aaa");
 });
 
 
@@ -542,10 +544,7 @@ addEventListener("keydown", e => {
  * 起動
  * ========================= */
 
-async function start() {
-  const res = await fetch("../words.json");
-  wordData = await res.json();
-
+function start() {
   initGrid();
   fastFillInitial();
   startLoop();
@@ -553,11 +552,6 @@ async function start() {
 
 start();
 </script>
-
-<!--
-<script src="//cdn.jsdelivr.net/npm/eruda">
-</script><script>eruda.init();</script>
--->
 
 </body>
 </html>
